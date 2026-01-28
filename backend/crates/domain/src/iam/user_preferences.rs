@@ -1,63 +1,82 @@
-use uuid::Uuid;
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
+// --- INTEGRATION: Import types from Shared Kernel ---
+use crate::shared::user_id::UserId;
+use crate::shared::currency::Currency; // Use the Enum, never String!
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct UserPreferences {
-    pub user_id: Uuid,
+    pub user_id: UserId,
     
-    // Default: "TWD"
-    pub preferred_currency: String,
+    // 1. Strict Typing:
+    // This guarantees the preference matches a real currency the system supports.
+    pub preferred_currency: Currency,
     
-    // Default: "SYSTEM", "LIGHT", or "DARK"
-    pub theme: String,
+    // 2. UI Theme:
+    // Keeping this as String is acceptable for now, but an Enum is safer long-term.
+    pub theme: String, 
     
-    // Flexible JSON blob for widget positions
+    // 3. Flexible Layout:
+    // Perfect use case for JSONB.
     pub dashboard_layout: JsonValue,
 }
 
 impl UserPreferences {
-    pub fn default_for_user(user_id: Uuid) -> Self {
+    pub fn default_for_user(user_id: UserId) -> Self {
         Self {
             user_id,
-            preferred_currency: "TWD".to_string(),
+            
+            // Strict Default
+            preferred_currency: Currency::TWD,
+            
             theme: "SYSTEM".to_string(),
+            
+            // Standard Default Widgets
             dashboard_layout: serde_json::json!({
-                "widgets": ["spending_summary", "quick_add"],
+                "widgets": ["spending_summary", "quick_add", "net_worth_card"],
                 "hidden": []
             }),
         }
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::shared::currency::Currency;
+    use crate::shared::user_id::UserId;
 
-#[test]
-fn test_preferences_defaults() {
-    // 1. Arrange
-    let user_id = Uuid::new_v4();
+    #[test]
+    fn test_preferences_defaults_strictly_typed() {
+        // 1. Arrange
+        let user_id = UserId::new_v4();
 
-    // 2. Act
-    let prefs = UserPreferences::default_for_user(user_id);
+        // 2. Act
+        let prefs = UserPreferences::default_for_user(user_id);
 
-    // 3. Assert
-    assert_eq!(prefs.user_id, user_id, "Preferences must link to the correct user");
-    assert_eq!(prefs.preferred_currency, "TWD", "Default currency should be TWD");
-    assert_eq!(prefs.theme, "SYSTEM", "Default theme should be SYSTEM");
-}
+        // 3. Assert
+        assert_eq!(prefs.user_id, user_id);
+        
+        // Asserting against the Enum, not a String
+        assert_eq!(prefs.preferred_currency, Currency::TWD, "Default must be TWD enum variant");
+        assert_eq!(prefs.theme, "SYSTEM");
+    }
 
-#[test]
-fn test_dashboard_layout_structure() {
-    let user_id = Uuid::new_v4();
-    let prefs = UserPreferences::default_for_user(user_id);
+    #[test]
+    fn test_dashboard_layout_structure() {
+        let user_id = UserId::new_v4();
+        let prefs = UserPreferences::default_for_user(user_id);
 
-    // Verify the JSON blob structure
-    let layout = &prefs.dashboard_layout;
-    
-    // Check if "widgets" exists and is an array
-    assert!(layout.get("widgets").is_some(), "Layout must have widgets");
-    assert!(layout["widgets"].is_array(), "Widgets must be a list");
-    
-    // Optional: Check specific default widgets
-    let widgets = layout["widgets"].as_array().unwrap();
-    assert!(widgets.contains(&JsonValue::String("spending_summary".to_string())));
+        let layout = &prefs.dashboard_layout;
+        
+        // Check structure
+        assert!(layout.get("widgets").is_some());
+        
+        let widgets = layout["widgets"].as_array().unwrap();
+        
+        // Verify defaults exist
+        assert!(widgets.contains(&serde_json::json!("spending_summary")));
+        assert!(widgets.contains(&serde_json::json!("net_worth_card")));
+    }
 }

@@ -452,6 +452,7 @@ dependencies = [
  "async-trait",
  "axum",
  "chrono",
+ "rust_decimal",
  "sea-orm",
  "serde",
  "serde_json",
