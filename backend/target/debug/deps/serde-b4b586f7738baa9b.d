@@ -1,0 +1,14 @@
+/mnt/c/Users/109300218/Documents/netflow/backend/target/debug/deps/serde-b4b586f7738baa9b.d: /home/benjschoen8/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /home/benjschoen8/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /home/benjschoen8/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /home/benjschoen8/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /home/benjschoen8/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /mnt/c/Users/109300218/Documents/netflow/backend/target/debug/build/serde-210023597896b101/out/private.rs
+
+/mnt/c/Users/109300218/Documents/netflow/backend/target/debug/deps/libserde-b4b586f7738baa9b.rlib: /home/benjschoen8/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /home/benjschoen8/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /home/benjschoen8/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /home/benjschoen8/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /home/benjschoen8/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /mnt/c/Users/109300218/Documents/netflow/backend/target/debug/build/serde-210023597896b101/out/private.rs
+
+/mnt/c/Users/109300218/Documents/netflow/backend/target/debug/deps/libserde-b4b586f7738baa9b.rmeta: /home/benjschoen8/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /home/benjschoen8/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /home/benjschoen8/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /home/benjschoen8/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /home/benjschoen8/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /mnt/c/Users/109300218/Documents/netflow/backend/target/debug/build/serde-210023597896b101/out/private.rs
+
+/home/benjschoen8/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs:
+/home/benjschoen8/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs:
+/home/benjschoen8/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs:
+/home/benjschoen8/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs:
+/home/benjschoen8/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs:
+/mnt/c/Users/109300218/Documents/netflow/backend/target/debug/build/serde-210023597896b101/out/private.rs:
+
+# env-dep:OUT_DIR=/mnt/c/Users/109300218/Documents/netflow/backend/target/debug/build/serde-210023597896b101/out
