@@ -1,25 +1,58 @@
 use thiserror::Error;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, Copy, Clone, PartialEq, Eq)]
 pub enum IamError {
-    // Business Rule: Uniqueness
-    #[error("Username '{0}' is already taken")]
-    UsernameExists(String),
+    // --- USERNAME RULES ---
+    #[error("Username is already taken")]
+    UsernameExists,
 
-    // Business Rule: Validation
-    #[error("Username '{0}' is invalid (must be 3-20 alphanum chars)")]
-    InvalidUsername(String),
+    #[error("Username cannot be empty")]
+    UsernameEmpty,
 
-    // Business Rule: Identity
+    #[error("Username is too short")]
+    UsernameTooShort,
+
+    #[error("Username is too long")]
+    UsernameTooLong,
+
+    #[error("Username contains illegal characters (only a-z, 0-9, and _ allowed)")]
+    UsernameIllegalChar,
+
+    #[error("Username cannot start or end with an underscore")]
+    UsernameInvalidFormat,
+
+    // --- PASSWORD RULES ---
+    #[error("Password cannot be empty")]
+    PasswordEmpty,
+
+    #[error("Password is too short")]
+    PasswordTooShort,
+
+    #[error("Password is too long (limit 128 chars)")]
+    PasswordTooLong,
+
+    #[error("Password requires at least one uppercase letter")]
+    PasswordRequiresUppercase,
+
+    #[error("Password requires at least one lowercase letter")]
+    PasswordRequiresLowercase,
+
+    #[error("Password requires at least one number")]
+    PasswordRequiresNumber,
+
+    #[error("Password requires at least one symbol")]
+    PasswordRequiresSymbol,
+
+    #[error("Password cannot contain whitespace")]
+    PasswordContainsWhitespace,
+
+    // --- SYSTEM / IDENTITY ---
     #[error("User not found")]
     UserNotFound,
-    
-    // Security
-    #[error("Invalid password")]
-    InvalidPassword,
 
-    // Infrastructure / Unexpected
-    // This allows the Domain to pass up DB errors without exposing SQL details
-    #[error("Internal IAM Error: {0}")]
-    SystemError(String),
+    #[error("Invalid password provided during login")]
+    InvalidCredentials,
+
+    #[error("Cryptographic proof generation failed")]
+    CryptoSystemError,
 }
