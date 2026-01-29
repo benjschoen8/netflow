@@ -1,4 +1,4 @@
-mod user;
+mod iam_user;
 mod user_preferences;
 mod user_repository;
 mod iam_error;
