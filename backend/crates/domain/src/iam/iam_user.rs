@@ -6,7 +6,7 @@ use crate::shared::user_id::UserId;
 use crate::shared::role::Role;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct IAMUser {
+pub struct IamUser {
     // 1. Use the Domain Type
     pub id: UserId,
 
@@ -24,7 +24,7 @@ pub struct IAMUser {
     pub updated_at: DateTime<Utc>,
 }
 
-impl IAMUser {
+impl IamUser {
     // Factory method
     pub fn new(username: String, password_hash: String) -> Self {
         Self {
@@ -49,7 +49,7 @@ mod tests {
         let username = "testing".to_string();
         let hash = "secret_hash".to_string();
 
-        let user = IAMUser::new(username.clone(), hash.clone());
+        let user = IamUser::new(username.clone(), hash.clone());
 
         assert_eq!(user.username, username);
         assert_eq!(user.password_hash, hash);
@@ -59,7 +59,7 @@ mod tests {
 
     #[test]
     fn test_security_serialization() {
-        let user = IAMUser::new("hacker".into(), "secret_hash".into());
+        let user = IamUser::new("hacker".into(), "secret_hash".into());
         let json = serde_json::to_string(&user).unwrap();
 
         // Assert: The JSON string should NOT contain "secret_hash"
