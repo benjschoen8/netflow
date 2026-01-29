@@ -46,8 +46,8 @@ mod tests {
 
     #[test]
     fn test_user_creation_integrates_shared_kernel() {
-        let username = "professor_taiwan".to_string();
-        let hash = "argon2$secret".to_string();
+        let username = "testing".to_string();
+        let hash = "secret_hash".to_string();
 
         let user = User::new(username.clone(), hash.clone());
 
