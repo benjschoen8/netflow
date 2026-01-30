@@ -21,7 +21,6 @@ impl BankAccount {
     pub(crate) fn new(user_id: UserId, username: String, account_id: AccountId, account_name: String, account_number: String, balance: Money) -> Self {
         Self {
             user_id,
-            username,
             account_id,
             account_name,
             account_number,
