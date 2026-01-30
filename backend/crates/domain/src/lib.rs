@@ -9,4 +9,6 @@ pub use crate::shared::role::Role;
 
 pub mod iam;
 
+pub mod bank;
+
 

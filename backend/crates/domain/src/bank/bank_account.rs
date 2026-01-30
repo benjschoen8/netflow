@@ -7,7 +7,7 @@ use crate::shared::account_id::AccountId;
 use crate::shared::money::Money;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct Bank {
+pub struct BankAccount {
     // 1. Use the Domain Type
     pub user_id: UserId,
     pub account_id: AccountId,
@@ -16,7 +16,7 @@ pub struct Bank {
     pub balance: Money,
 }
 
-impl Bank {
+impl BankAccount {
     // Factory method
     pub(crate) fn new(user_id: UserId, username: String, account_id: AccountId, account_name: String, account_number: String, balance: Money) -> Self {
         Self {
@@ -28,6 +28,4 @@ impl Bank {
             balance,
         }
     }
-
-
 }
