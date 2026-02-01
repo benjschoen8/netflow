@@ -10,10 +10,10 @@ use crate::iam::time_frame::TimeFrame;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AccessClaim {
     // Standard JWT Claims (RFC 7519)
-    pub subject: UserId,
-    pub role: Role,
-    pub time_frame: TimeFrame,
-    pub service: Service,
+    subject: UserId,
+    role: Role,
+    time_frame: TimeFrame,
+    service: Service,
 }
 
 impl AccessClaim {
@@ -24,5 +24,25 @@ impl AccessClaim {
             time_frame,
             service,
         }
+    }
+
+    pub fn subject(&self) -> UserId {
+        self.subject
+    }
+
+    pub fn role(&self) -> Role {
+        self.role
+    }
+
+    pub fn service(&self) -> &Service {
+        &self.service
+    }
+
+    pub fn time_frame(&self) -> TimeFrame {
+        self.time_frame
+    }
+
+    pub fn is_active(&self) -> bool {
+        !self.time_frame.is_active()
     }
 }

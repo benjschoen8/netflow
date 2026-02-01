@@ -21,7 +21,7 @@ impl TimeFrame {
         self.expires_at
     }
 
-    pub fn is_expired(&self) -> bool {
-        Utc::now() > self.expires_at
+    pub fn is_active(&self) -> bool {
+        Utc::now() < self.expires_at
     }
 }
