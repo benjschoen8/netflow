@@ -12,7 +12,6 @@ pub struct RefreshToken {
     
     pub user_id: UserId,
     
-    // Audit: "Where is this session from?"
     pub device_name: Option<String>,
     pub ip_address: Option<String>,
     
