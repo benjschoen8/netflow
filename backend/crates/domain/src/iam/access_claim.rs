@@ -43,6 +43,6 @@ impl AccessClaim {
     }
 
     pub fn is_active(&self) -> bool {
-        !self.time_frame.is_active()
+        self.time_frame.is_active()
     }
 }
