@@ -22,7 +22,6 @@ impl Money {
     }
 }
 
-// --- Math Logic ---
 
 impl Add for Money {
     type Output = Money;

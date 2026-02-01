@@ -38,8 +38,8 @@ impl AccessClaim {
         &self.service
     }
 
-    pub fn time_frame(&self) -> TimeFrame {
-        self.time_frame
+    pub fn time_frame(&self) -> &TimeFrame {
+        &self.time_frame
     }
 
     pub fn is_active(&self) -> bool {

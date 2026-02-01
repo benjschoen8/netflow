@@ -30,7 +30,7 @@ impl RefreshToken {
         }
     }
 
-    pub fn token_hash(&self) -> &str {
+    pub fn token_hash(&self) -> &TokenHash {
         &self.token_hash
     }
 

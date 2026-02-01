@@ -50,7 +50,7 @@ mod tests {
     #[test]
     fn test_preferences_defaults_strictly_typed() {
         // 1. Arrange
-        let user_id = UserId::new_v4();
+        let user_id = UserId::new();
 
         // 2. Act
         let prefs = UserPreferences::default_for_user(user_id);
@@ -65,7 +65,7 @@ mod tests {
 
     #[test]
     fn test_dashboard_layout_structure() {
-        let user_id = UserId::new_v4();
+        let user_id = UserId::new();
         let prefs = UserPreferences::default_for_user(user_id);
 
         let layout = &prefs.dashboard_layout;

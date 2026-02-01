@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct AccountName(String);
 
-Impl AccountName{
+impl AccountName{
     pub fn new(name: String) -> Self {Self(name)}
 }

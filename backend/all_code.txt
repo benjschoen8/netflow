@@ -1,0 +1,819 @@
+\n\n========================================\nFILE: ./Cargo.toml\n========================================
+[package]
+name = "backend"
+version = "0.1.0"
+edition = "2024"
+
+[workspace]
+resolver = "2"
+members = [
+    "crates/domain",
+    "crates/application",
+    "crates/infrastructure",
+    "crates/interface"
+]
+
+[dependencies]
+\n\n========================================\nFILE: ./crates/application/Cargo.toml\n========================================
+[package]
+name = "application"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+\n\n========================================\nFILE: ./crates/application/src/lib.rs\n========================================
+pub fn add(left: u64, right: u64) -> u64 {
+    left + right
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn it_works() {
+        let result = add(2, 2);
+        assert_eq!(result, 4);
+    }
+}
+\n\n========================================\nFILE: ./crates/domain/Cargo.toml\n========================================
+[package]
+name = "domain"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+async-trait = "0.1.89"
+axum = "0.8.8"
+chrono = { version = "0.4.43", features = ["serde"] }
+rust_decimal = "1.40.0"
+sea-orm = { version = "1.1.19", features = ["sqlx-sqlite", "runtime-tokio-rustls", "macros"] }
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.149"
+thiserror = "2.0.18"
+tokio = { version = "1.49.0", features = ["full"] }
+uuid = { version = "1.20.0", features = ["serde", "v4"] }
+\n\n========================================\nFILE: ./crates/domain/src/bank/bank_account.rs\n========================================
+use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
+
+// --- INTEGRATION: Import types from Shared Kernel ---
+use crate::shared::user_id::UserId;
+use crate::shared::account_id::AccountId;
+use crate::shared::account_name::AccountName;
+use crate::shared::bank::Bank;
+use crate::shared::account_number::AccountNumber;
+use crate::shared::money::Money;
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct BankAccount {
+    // 1. Use the Domain Type
+    pub user_id: UserId,
+    pub account_id: AccountId,
+    pub account_name: AccountName,
+    pub bank: Bank,
+    pub account_number: AccountNumber,
+    pub balance: Money,
+}
+
+impl BankAccount {
+    // Factory method
+    pub(crate) fn new(user_id: UserId, account_id: AccountId, account_name: AccountName, bank: Bank, account_number: AccountNumber, balance: Money) -> Self {
+        Self {
+            user_id,
+            account_id,
+            account_name,
+            bank,
+            account_number,
+            balance,
+        }
+    }
+}\n\n========================================\nFILE: ./crates/domain/src/bank.rs\n========================================
+mod bank_account;\n\n========================================\nFILE: ./crates/domain/src/iam/access_claim.rs\n========================================
+use chrono::{Duration, Utc};
+use serde::{Deserialize, Serialize};
+
+// --- INTEGRATION: Import types from Shared Kernel ---
+use crate::shared::user_id::UserId;
+use crate::shared::role::Role;
+use crate::shared::service::Service;
+use crate::iam::time_frame::TimeFrame;
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccessClaim {
+    // Standard JWT Claims (RFC 7519)
+    subject: UserId,
+    role: Role,
+    time_frame: TimeFrame,
+    service: Service,
+}
+
+impl AccessClaim {
+    pub fn new(subject: UserId, role: Role, time_frame: TimeFrame, service: Service) -> Self {
+        Self {
+            subject,
+            role,
+            time_frame,
+            service,
+        }
+    }
+
+    pub fn subject(&self) -> UserId {
+        self.subject
+    }
+
+    pub fn role(&self) -> Role {
+        self.role
+    }
+
+    pub fn service(&self) -> &Service {
+        &self.service
+    }
+
+    pub fn time_frame(&self) -> TimeFrame {
+        self.time_frame
+    }
+
+    pub fn is_active(&self) -> bool {
+        self.time_frame.is_active()
+    }
+}
+\n\n========================================\nFILE: ./crates/domain/src/iam/iam_error.rs\n========================================
+use thiserror::Error;
+
+#[derive(Error, Debug, Copy, Clone, PartialEq, Eq)]
+pub enum IamError {
+    // --- USERNAME RULES ---
+    #[error("Username is already taken")]
+    UsernameExists,
+
+    #[error("Username cannot be empty")]
+    UsernameEmpty,
+
+    #[error("Username is too short")]
+    UsernameTooShort,
+
+    #[error("Username is too long")]
+    UsernameTooLong,
+
+    #[error("Username contains illegal characters (only a-z, 0-9, and _ allowed)")]
+    UsernameIllegalChar,
+
+    #[error("Username cannot start or end with an underscore")]
+    UsernameInvalidFormat,
+
+    // --- PASSWORD RULES ---
+    #[error("Password cannot be empty")]
+    PasswordEmpty,
+
+    #[error("Password is too short")]
+    PasswordTooShort,
+
+    #[error("Password is too long (limit 128 chars)")]
+    PasswordTooLong,
+
+    #[error("Password requires at least one uppercase letter")]
+    PasswordRequiresUppercase,
+
+    #[error("Password requires at least one lowercase letter")]
+    PasswordRequiresLowercase,
+
+    #[error("Password requires at least one number")]
+    PasswordRequiresNumber,
+
+    #[error("Password requires at least one symbol")]
+    PasswordRequiresSymbol,
+
+    #[error("Password cannot contain whitespace")]
+    PasswordContainsWhitespace,
+
+    // --- SYSTEM / IDENTITY ---
+    #[error("User not found")]
+    UserNotFound,
+
+    #[error("Invalid password provided during login")]
+    InvalidCredentials,
+
+    #[error("Cryptographic proof generation failed")]
+    CryptoSystemError,
+}\n\n========================================\nFILE: ./crates/domain/src/iam/iam_input_validator.rs\n========================================
+use crate::iam::iam_error::IamError;
+
+#[derive(Debug, Clone, Copy)] // Copy is cheap for simple bools/usize
+pub struct IamInputValidator {
+    pub min_username_len: usize,
+    pub max_username_len: usize,
+    pub min_password_len: usize,
+    pub max_password_len: usize,
+    pub require_uppercase: bool,
+    pub require_lowercase: bool,
+    pub require_number: bool,
+    pub require_symbol: bool,
+}
+
+impl Default for IamInputValidator {
+    /// The Default "Strict" Configuration
+    /// This is deterministic. It does not look at .env.
+    /// The Application Layer is responsible for reading .env and overriding these if needed.
+    fn default() -> Self {
+        Self {
+            min_username_len: 3,
+            max_username_len: 30,
+            min_password_len: 5,    // Default (Dev)
+            max_password_len: 128,
+            require_uppercase: true,
+            require_lowercase: true,
+            require_number: true,
+            require_symbol: true,
+        }
+    }
+}
+
+impl IamInputValidator {
+    /// Constructor that simply returns the default strict rules.
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    // --- USERNAME CHECKS ---
+
+    pub fn validate_username(&self, username: &str) -> Result<(), IamError> {
+        if username.trim().is_empty() {
+            return Err(IamError::UsernameEmpty);
+        }
+
+        let len = username.len();
+        if len < self.min_username_len {
+            return Err(IamError::UsernameTooShort);
+        }
+        if len > self.max_username_len {
+            return Err(IamError::UsernameTooLong);
+        }
+
+        for c in username.chars() {
+            if !c.is_alphanumeric() && c != '_' {
+                return Err(IamError::UsernameIllegalChar);
+            }
+        }
+
+        if username.starts_with('_') || username.ends_with('_') {
+            return Err(IamError::UsernameInvalidFormat);
+        }
+
+        Ok(())
+    }
+
+    // --- PASSWORD CHECKS ---
+
+    pub fn validate_password_complexity(&self, password: &str) -> Result<(), IamError> {
+        if password.is_empty() {
+            return Err(IamError::PasswordEmpty);
+        }
+
+        if password.contains(char::is_whitespace) {
+            return Err(IamError::PasswordContainsWhitespace);
+        }
+
+        let len = password.len();
+        if len < self.min_password_len {
+            return Err(IamError::PasswordTooShort);
+        }
+        if len > self.max_password_len {
+            return Err(IamError::PasswordTooLong);
+        }
+
+        let mut has_upper = false;
+        let mut has_lower = false;
+        let mut has_digit = false;
+        let mut has_symbol = false;
+
+        for c in password.chars() {
+            if c.is_uppercase() { has_upper = true; }
+            else if c.is_lowercase() { has_lower = true; }
+            else if c.is_numeric() { has_digit = true; }
+            else { has_symbol = true; }
+        }
+
+        if self.require_uppercase && !has_upper {
+            return Err(IamError::PasswordRequiresUppercase);
+        }
+        if self.require_lowercase && !has_lower {
+            return Err(IamError::PasswordRequiresLowercase);
+        }
+        if self.require_number && !has_digit {
+            return Err(IamError::PasswordRequiresNumber);
+        }
+        if self.require_symbol && !has_symbol {
+            return Err(IamError::PasswordRequiresSymbol);
+        }
+
+        Ok(())
+    }
+}\n\n========================================\nFILE: ./crates/domain/src/iam/iam_user.rs\n========================================
+use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
+
+// --- INTEGRATION: Import types from Shared Kernel ---
+use crate::shared::user_id::UserId;
+use crate::shared::role::Role;
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct IamUser {
+    // 1. Use the Domain Type
+    pub id: UserId,
+
+    pub username: String,
+
+    // 2. SECURITY CRITICAL:
+    // This tag ensures the hash is NEVER sent to the Frontend in JSON.
+    #[serde(skip_serializing)]
+    pub password_hash: String,
+
+    // 3. Authorization Level
+    pub role: Role,
+
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+impl IamUser {
+    // Factory method
+    pub fn new(username: String, password_hash: String) -> Self {
+        Self {
+            id: UserId::new_v4(),
+            username,
+            password_hash,
+            // Default new users to the lowest permission level
+            role: Role::User,
+            created_at: Utc::now(),
+            updated_at: Utc::now(),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::shared::role::Role;
+
+    #[test]
+    fn test_user_creation_integrates_shared_kernel() {
+        let username = "testing".to_string();
+        let hash = "secret_hash".to_string();
+
+        let user = IamUser::new(username.clone(), hash.clone());
+
+        assert_eq!(user.username, username);
+        assert_eq!(user.password_hash, hash);
+        assert_eq!(user.role, Role::User); // Verifying the default role
+        assert!(!user.id.is_nil());
+    }
+
+    #[test]
+    fn test_security_serialization() {
+        let user = IamUser::new("hacker".into(), "secret_hash".into());
+        let json = serde_json::to_string(&user).unwrap();
+
+        // Assert: The JSON string should NOT contain "secret_hash"
+        assert!(!json.contains("secret_hash"), "SECURITY FAIL: Password hash leaked in JSON!");
+    }
+}
+\n\n========================================\nFILE: ./crates/domain/src/iam/refresh_token.rs\n========================================
+use serde::{Deserialize, Serialize};
+
+use crate::shared::user_id::UserId;
+use crate::iam::time_frame::TimeFrame;
+use crate::iam::token_hash::TokenHash;
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct RefreshToken {
+    token_hash: TokenHash,
+    user_id: UserId,
+    device_name: Option<String>,
+    ip_address: Option<String>,
+    time_frame: TimeFrame,
+}
+
+impl RefreshToken {
+    pub fn new(
+        token_hash: TokenHash, 
+        user_id: UserId, 
+        device_name: Option<String>,
+        ip_address: Option<String>,
+        time_frame: TimeFrame
+    ) -> Self {
+        Self {
+            token_hash,
+            user_id,
+            device_name,
+            ip_address,
+            time_frame,
+        }
+    }
+
+    pub fn token_hash(&self) -> &str {
+        &self.token_hash
+    }
+
+    pub fn user_id(&self) -> UserId {
+        self.user_id
+    }
+
+    pub fn device_name(&self) -> Option<&str> {
+        self.device_name.as_deref()
+    }
+
+    pub fn is_valid(&self) -> bool {
+        self.time_frame.is_active()
+    }
+}\n\n========================================\nFILE: ./crates/domain/src/iam/session_repository.rs\n========================================
+use async_trait::async_trait;
+use crate::shared::user_id::UserId;
+use crate::iam::refresh_token::RefreshToken;
+use crate::iam::iam_error::IamError;
+
+#[async_trait]
+pub trait SessionRepository: Send + Sync {
+    async fn save(&self, token: &RefreshToken) -> Result<(), IamError>;
+    async fn find_by_hash(&self, token_hash: &str) -> Result<Option<RefreshToken>, IamError>;
+    async fn revoke_all_for_user(&self, user_id: UserId) -> Result<(), IamError>;
+    async fn delete_expired(&self) -> Result<(), IamError>;
+}
+\n\n========================================\nFILE: ./crates/domain/src/iam/time_frame.rs\n========================================
+use serde::{Deserialize, Serialize};
+use chrono::{DateTime, Utc};
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TimeFrame {
+    issued_at: DateTime<Utc>,
+    expires_at: DateTime<Utc>,
+}
+
+impl TimeFrame {
+    pub fn new(issued_at: DateTime<Utc>, duration: std::time::Duration) -> Self {
+        let expires_at = issued_at + chrono::Duration::from_std(duration).unwrap();
+        Self { issued_at, expires_at }
+    }
+    
+    pub fn issued_at(&self) -> DateTime<Utc> {
+        self.issued_at
+    }
+
+    pub fn expires_at(&self) -> DateTime<Utc> {
+        self.expires_at
+    }
+
+    pub fn is_active(&self) -> bool {
+        Utc::now() < self.expires_at
+    }
+}
+\n\n========================================\nFILE: ./crates/domain/src/iam/token_hash.rs\n========================================
+use serde::{Deserialize, Serialize};
+use sea_orm::entity::prelude::*;
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, DeriveValueType)]
+pub struct TokenHash(String);
+
+impl TokenHash {
+    pub fn new(hash: impl Into<String>) -> Self {
+        let h = hash.into();
+        if h.trim().is_empty() {
+            panic!("TokenHash cannot be empty");
+        }
+        Self(h)
+    }
+
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
+impl PartialEq<&str> for TokenHash {
+    fn eq(&self, other: &&str) -> bool {
+        self.0 == *other
+    }
+}\n\n========================================\nFILE: ./crates/domain/src/iam/user_preferences.rs\n========================================
+use serde::{Deserialize, Serialize};
+use serde_json::Value as JsonValue;
+
+// --- INTEGRATION: Import types from Shared Kernel ---
+use crate::shared::user_id::UserId;
+use crate::shared::currency::Currency; // Use the Enum, never String!
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct UserPreferences {
+    pub user_id: UserId,
+    
+    // 1. Strict Typing:
+    // This guarantees the preference matches a real currency the system supports.
+    pub preferred_currency: Currency,
+    
+    // 2. UI Theme:
+    // Keeping this as String is acceptable for now, but an Enum is safer long-term.
+    pub theme: String, 
+    
+    // 3. Flexible Layout:
+    // Perfect use case for JSONB.
+    pub dashboard_layout: JsonValue,
+}
+
+impl UserPreferences {
+    pub fn default_for_user(user_id: UserId) -> Self {
+        Self {
+            user_id,
+            
+            // Strict Default
+            preferred_currency: Currency::TWD,
+            
+            theme: "SYSTEM".to_string(),
+            
+            // Standard Default Widgets
+            dashboard_layout: serde_json::json!({
+                "widgets": ["spending_summary", "quick_add", "net_worth_card"],
+                "hidden": []
+            }),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::shared::currency::Currency;
+    use crate::shared::user_id::UserId;
+
+    #[test]
+    fn test_preferences_defaults_strictly_typed() {
+        // 1. Arrange
+        let user_id = UserId::new_v4();
+
+        // 2. Act
+        let prefs = UserPreferences::default_for_user(user_id);
+
+        // 3. Assert
+        assert_eq!(prefs.user_id, user_id);
+        
+        // Asserting against the Enum, not a String
+        assert_eq!(prefs.preferred_currency, Currency::TWD, "Default must be TWD enum variant");
+        assert_eq!(prefs.theme, "SYSTEM");
+    }
+
+    #[test]
+    fn test_dashboard_layout_structure() {
+        let user_id = UserId::new_v4();
+        let prefs = UserPreferences::default_for_user(user_id);
+
+        let layout = &prefs.dashboard_layout;
+        
+        // Check structure
+        assert!(layout.get("widgets").is_some());
+        
+        let widgets = layout["widgets"].as_array().unwrap();
+        
+        // Verify defaults exist
+        assert!(widgets.contains(&serde_json::json!("spending_summary")));
+        assert!(widgets.contains(&serde_json::json!("net_worth_card")));
+    }
+}
+\n\n========================================\nFILE: ./crates/domain/src/iam/user_repository.rs\n========================================
+use async_trait::async_trait;
+use crate::shared::user_id::UserId;
+use crate::iam::iam_user::IamUser;
+use crate::iam::iam_error::IamError;
+
+#[async_trait]
+pub trait UserRepository: Send + Sync {
+    async fn save(&self, user: &IamUser) -> Result<(), IamError>;
+    async fn find_by_username(&self, username: &str) -> Result<Option<IamUser>, IamError>;
+    async fn find_by_id(&self, id: UserId) -> Result<Option<IamUser>, IamError>;
+}
+\n\n========================================\nFILE: ./crates/domain/src/iam.rs\n========================================
+mod iam_user;
+mod user_preferences;
+mod user_repository;
+mod iam_error;
+mod time_frame;
+mod token_hash;
+mod refresh_token;
+mod access_claim;
+mod session_repository;\n\n========================================\nFILE: ./crates/domain/src/lib.rs\n========================================
+pub mod shared;
+
+pub use crate::shared::event_id::EventId;
+pub use crate::shared::user_id::UserId;
+pub use crate::shared::account_id::AccountId;
+pub use crate::shared::currency::Currency;
+pub use crate::shared::money::Money;
+pub use crate::shared::role::Role;
+
+pub mod iam;
+
+pub mod bank;
+
+
+\n\n========================================\nFILE: ./crates/domain/src/shared/account_id.rs\n========================================
+use uuid::Uuid;
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct AccountId(Uuid);
+
+impl AccountId {
+    pub fn new() -> Self { Self(Uuid::new_v4()) }
+}
+\n\n========================================\nFILE: ./crates/domain/src/shared/account_name.rs\n========================================
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct AccountName(String);
+
+Impl AccountName{
+    pub fn new(name: String) -> Self {Self(name)}
+}\n\n========================================\nFILE: ./crates/domain/src/shared/account_number.rs\n========================================
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct AccountNumber(String);
+
+Impl AccountNumber{
+    pub fn new(name: String) -> Self {Self(name)}
+}
+\n\n========================================\nFILE: ./crates/domain/src/shared/bank.rs\n========================================
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct Bank(String);
+
+Impl Bank{
+    pub fn new(name: String) -> Self {Self(name)}
+}
+\n\n========================================\nFILE: ./crates/domain/src/shared/currency.rs\n========================================
+use serde::{Deserialize, Serialize};
+use std::fmt;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum Currency {
+    USD,
+    TWD,
+}
+
+impl fmt::Display for Currency {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+\n\n========================================\nFILE: ./crates/domain/src/shared/event_id.rs\n========================================
+use uuid::Uuid;
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct EventId(Uuid);
+
+impl EventId {
+    pub fn new() -> Self { Self(Uuid::new_v4()) }
+}
+\n\n========================================\nFILE: ./crates/domain/src/shared/money.rs\n========================================
+use crate::shared::currency::Currency;
+use rust_decimal::Decimal;
+use serde::{Deserialize, Serialize};
+use std::ops::{Add, Sub};
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Money {
+    pub amount: Decimal,
+    pub currency: Currency,
+}
+
+impl Money {
+    pub fn new(amount: Decimal, currency: Currency) -> Self {
+        Self { amount, currency }
+    }
+
+    pub fn zero(currency: Currency) -> Self {
+        Self {
+            amount: Decimal::ZERO,
+            currency,
+        }
+    }
+}
+
+// --- Math Logic ---
+
+impl Add for Money {
+    type Output = Money;
+
+    fn add(self, other: Self) -> Self {
+        if self.currency != other.currency {
+            panic!(
+                "Currency Mismatch: Cannot add {} to {}",
+                self.currency, other.currency
+            );
+        }
+        Money {
+            amount: self.amount + other.amount,
+            currency: self.currency,
+        }
+    }
+}
+
+impl Sub for Money {
+    type Output = Money;
+
+    fn sub(self, other: Self) -> Self {
+        if self.currency != other.currency {
+            panic!(
+                "Currency Mismatch: Cannot subtract {} from {}",
+                other.currency, self.currency
+            );
+        }
+        Money {
+            amount: self.amount - other.amount,
+            currency: self.currency,
+        }
+    }
+}
+\n\n========================================\nFILE: ./crates/domain/src/shared/role.rs\n========================================
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum Role {
+    Admin,
+    User,
+    Auditor,
+}
+
+impl Default for Role {
+    fn default() -> Self {
+        Role::User
+    }
+}
+\n\n========================================\nFILE: ./crates/domain/src/shared/service.rs\n========================================
+pub type Service = String;\n\n========================================\nFILE: ./crates/domain/src/shared/user_id.rs\n========================================
+use uuid::Uuid;
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct UserId(Uuid);
+
+impl UserId {
+    pub fn new() -> Self { Self(Uuid::new_v4()) }
+}
+\n\n========================================\nFILE: ./crates/domain/src/shared.rs\n========================================
+pub mod event_id;
+pub mod user_id;
+pub mod account_id;
+pub mod account_name;
+pub mod bank;
+pub mod account_number;
+pub mod currency;
+pub mod money;
+pub mod role;
+pub mod service;\n\n========================================\nFILE: ./crates/infrastructure/Cargo.toml\n========================================
+[package]
+name = "infrastructure"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+\n\n========================================\nFILE: ./crates/infrastructure/src/lib.rs\n========================================
+pub fn add(left: u64, right: u64) -> u64 {
+    left + right
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn it_works() {
+        let result = add(2, 2);
+        assert_eq!(result, 4);
+    }
+}
+\n\n========================================\nFILE: ./crates/interface/Cargo.toml\n========================================
+[package]
+name = "interface"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+\n\n========================================\nFILE: ./crates/interface/src/lib.rs\n========================================
+pub fn add(left: u64, right: u64) -> u64 {
+    left + right
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn it_works() {
+        let result = add(2, 2);
+        assert_eq!(result, 4);
+    }
+}
+\n\n========================================\nFILE: ./src/lib.rs\n========================================
+\n\n========================================\nFILE: ./src/main.rs\n========================================
+fn main() {
+    println!("Hello, world!");
+}

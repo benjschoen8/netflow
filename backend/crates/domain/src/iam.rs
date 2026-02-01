@@ -1,3 +1,5 @@
+mod username;
+mod password_hash;
 mod iam_user;
 mod user_preferences;
 mod user_repository;
