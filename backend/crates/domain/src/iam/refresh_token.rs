@@ -2,10 +2,11 @@ use serde::{Deserialize, Serialize};
 
 use crate::shared::user_id::UserId;
 use crate::iam::time_frame::TimeFrame;
+use crate::iam::token_hash::TokenHash;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct RefreshToken {
-    token_hash: String,
+    token_hash: TokenHash,
     user_id: UserId,
     device_name: Option<String>,
     ip_address: Option<String>,
@@ -14,7 +15,7 @@ pub struct RefreshToken {
 
 impl RefreshToken {
     pub fn new(
-        token_hash: String, 
+        token_hash: TokenHash, 
         user_id: UserId, 
         device_name: Option<String>,
         ip_address: Option<String>,
