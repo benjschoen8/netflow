@@ -1,42 +1,20 @@
 use crate::iam::iam_error::IamError;
+use crate::iam::requirement::IamRequirement;
 
-#[derive(Debug, Clone, Copy)] // Copy is cheap for simple bools/usize
+#[derive(Debug, Clone, Copy)]
 pub struct IamInputValidator {
-    pub min_username_len: usize,
-    pub max_username_len: usize,
-    pub min_password_len: usize,
-    pub max_password_len: usize,
-    pub require_uppercase: bool,
-    pub require_lowercase: bool,
-    pub require_number: bool,
-    pub require_symbol: bool,
+    requirement: IamRequirement,
 }
 
 impl Default for IamInputValidator {
-    /// The Default "Strict" Configuration
-    /// This is deterministic. It does not look at .env.
-    /// The Application Layer is responsible for reading .env and overriding these if needed.
-    fn default() -> Self {
-        Self {
-            min_username_len: 3,
-            max_username_len: 30,
-            min_password_len: 5,    // Default (Dev)
-            max_password_len: 128,
-            require_uppercase: true,
-            require_lowercase: true,
-            require_number: true,
-            require_symbol: true,
-        }
-    }
+    requirement: IamRequirement;
 }
 
 impl IamInputValidator {
     /// Constructor that simply returns the default strict rules.
-    pub fn new() -> Self {
-        Self::default()
+    pub fn new(requirement: IamRequirement) -> Self {
+        Self{ requirements }
     }
-
-    // --- USERNAME CHECKS ---
 
     pub fn validate_username(&self, username: &str) -> Result<(), IamError> {
         if username.trim().is_empty() {
