@@ -1,0 +1,5 @@
+# Policy for identity strings
+min_username_len = 3
+max_username_len = 30
+allow_underscores = true
+allow_numeric = true

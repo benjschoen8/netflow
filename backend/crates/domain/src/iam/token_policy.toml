@@ -1,0 +1,6 @@
+# Policy for session management and JWTs
+# All durations are in seconds
+access_token_duration = 3600
+refresh_token_duration = 604800
+issuer = "my-secure-auth-service"
+audience = "finance-app-users"
