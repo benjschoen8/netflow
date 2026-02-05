@@ -1,58 +1,40 @@
 use thiserror::Error;
 
-#[derive(Error, Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Error, Debug, Clone, PartialEq, Eq)]
 pub enum IamError {
-    // --- USERNAME RULES ---
+    #[error("{0} cannot be empty")]
+    Empty(&'static str),
+
+    #[error("{0} is too short (min: {1})")]
+    TooShort(&'static str, usize),
+
+    #[error("{0} is too long (max: {1})")]
+    TooLong(&'static str, usize),
+
+    #[error("{0} contains illegal characters: {1:?}")]
+    IllegalCharacter(&'static str, Vec<char>),
+
+    #[error("{0} contains a security-violating control character")]
+    SecurityViolation(&'static str),
+
+    #[error("{0} requires at least one uppercase letter")]
+    MissingUppercase(&'static str),
+
+    #[error("{0} requires at least one lowercase letter")]
+    MissingLowercase(&'static str),
+
+    #[error("{0} requires at least one number")]
+    MissingNumber(&'static str),
+
+    #[error("{0} requires at least one symbol")]
+    MissingSymbol(&'static str),
+
     #[error("Username is already taken")]
     UsernameExists,
 
-    #[error("Username cannot be empty")]
-    UsernameEmpty,
-
-    #[error("Username is too short")]
-    UsernameTooShort,
-
-    #[error("Username is too long")]
-    UsernameTooLong,
-
-    #[error("Username contains illegal characters (only a-z, 0-9, and _ allowed)")]
-    UsernameIllegalChar,
-
-    #[error("Username cannot start or end with an underscore")]
-    UsernameInvalidFormat,
-
-    // --- PASSWORD RULES ---
-    #[error("Password cannot be empty")]
-    PasswordEmpty,
-
-    #[error("Password is too short")]
-    PasswordTooShort,
-
-    #[error("Password is too long (limit 128 chars)")]
-    PasswordTooLong,
-
-    #[error("Password requires at least one uppercase letter")]
-    PasswordRequiresUppercase,
-
-    #[error("Password requires at least one lowercase letter")]
-    PasswordRequiresLowercase,
-
-    #[error("Password requires at least one number")]
-    PasswordRequiresNumber,
-
-    #[error("Password requires at least one symbol")]
-    PasswordRequiresSymbol,
-
-    #[error("Password cannot contain whitespace")]
-    PasswordContainsWhitespace,
-
-    // --- SYSTEM / IDENTITY ---
     #[error("User not found")]
     UserNotFound,
 
-    #[error("Invalid password provided during login")]
+    #[error("Invalid credentials provided")]
     InvalidCredentials,
-
-    #[error("Cryptographic proof generation failed")]
-    CryptoSystemError,
 }

@@ -9,3 +9,7 @@ mod token_hash;
 mod refresh_token;
 mod access_claim;
 mod session_repository;
+mod policy;
+mod password_policy;
+mod username_policy;
+mod iam_validator;

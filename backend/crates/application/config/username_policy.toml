@@ -1,5 +1,8 @@
-# Policy for identity strings
-min_username_len = 3
-max_username_len = 30
-allow_underscores = true
-allow_numeric = true
+min_len = 3
+max_len = 30
+illegal_characters = [
+    ' ', '\t',
+    '\'', '"', '`',
+    ';',
+    '\\', '/'
+]
