@@ -4,7 +4,6 @@ use serde::{Deserialize, Serialize};
 // --- INTEGRATION: Import types from Shared Kernel ---
 use crate::shared::user_id::UserId;
 use crate::shared::role::Role;
-use crate::shared::service::Service;
 use crate::iam::time_frame::TimeFrame;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -13,11 +12,11 @@ pub struct AccessClaim {
     subject: UserId,
     role: Role,
     time_frame: TimeFrame,
-    service: Service,
+    service: String,
 }
 
 impl AccessClaim {
-    pub fn new(subject: UserId, role: Role, time_frame: TimeFrame, service: Service) -> Self {
+    pub fn new(subject: UserId, role: Role, time_frame: TimeFrame, service: String) -> Self {
         Self {
             subject,
             role,
@@ -34,7 +33,7 @@ impl AccessClaim {
         self.role
     }
 
-    pub fn service(&self) -> &Service {
+    pub fn service(&self) -> &String {
         &self.service
     }
 

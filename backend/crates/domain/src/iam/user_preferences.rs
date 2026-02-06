@@ -8,17 +8,8 @@ use crate::shared::currency::Currency; // Use the Enum, never String!
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct UserPreferences {
     pub user_id: UserId,
-    
-    // 1. Strict Typing:
-    // This guarantees the preference matches a real currency the system supports.
     pub preferred_currency: Currency,
-    
-    // 2. UI Theme:
-    // Keeping this as String is acceptable for now, but an Enum is safer long-term.
     pub theme: String, 
-    
-    // 3. Flexible Layout:
-    // Perfect use case for JSONB.
     pub dashboard_layout: JsonValue,
 }
 

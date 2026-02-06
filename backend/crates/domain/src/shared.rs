@@ -7,4 +7,4 @@ pub mod account_number;
 pub mod currency;
 pub mod money;
 pub mod role;
-pub mod service;
+pub mod shared_error;

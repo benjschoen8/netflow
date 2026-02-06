@@ -4,8 +4,8 @@ use serde::{Deserialize, Serialize};
 pub struct Password(String);
 
 impl Password {
-    pub fn new(raw: impl Into<String>) -> Self {
-        Self(raw.into())
+    pub fn new(raw: String) -> Self {
+        Self(raw)
     }
 
     pub fn as_str(&self) -> &str {

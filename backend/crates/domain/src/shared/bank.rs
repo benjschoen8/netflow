@@ -1,19 +1,27 @@
 use serde::{Deserialize, Serialize};
 use sea_orm::entity::prelude::*;
+use crate::shared::shared_error::SharedError;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, DeriveValueType)]
-pub struct Bank(String);
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct Bank{
+    id: String,
+    name: String,
+}
 
 impl Bank {
-    pub fn new(name: impl Into<String>) -> Self {
-        let n = name.into();
-        if n.trim().is_empty() {
-            panic!("Bank name cannot be empty");
+    pub fn new(id: String, name: String) -> Result<Self, SharedError> {
+        if id.is_empty() {
+            return Err(SharedError::Empty("[Bank:id] cannot be empty"));
         }
-        Self(n)
-    }
-
-    pub fn as_str(&self) -> &str {
-        &self.0
+        if id.chars().any(|c| c.is_control()) {
+            return Err(SharedError::InvalidFormat("[Bank:id] contains illegal format (control characters)"));
+        }
+        if name.is_empty() {
+            return Err(SharedError::Empty("[Bank:name] cannot be empty"));
+        }
+        if name.chars().any(|c| c.is_control()) {
+            return Err(SharedError::InvalidFormat("[Bank:name] contains illegal format (control characters)"));
+        }
+        Ok(Self { id, name })
     }
 }

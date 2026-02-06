@@ -11,7 +11,6 @@ use crate::shared::money::Money;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct BankAccount {
-    // 1. Use the Domain Type
     pub user_id: UserId,
     pub account_id: AccountId,
     pub account_name: AccountName,
@@ -21,7 +20,6 @@ pub struct BankAccount {
 }
 
 impl BankAccount {
-    // Factory method
     pub(crate) fn new(user_id: UserId, account_id: AccountId, account_name: AccountName, bank: Bank, account_number: AccountNumber, balance: Money) -> Self {
         Self {
             user_id,
