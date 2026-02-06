@@ -13,3 +13,5 @@ mod policy;
 mod password_policy;
 mod username_policy;
 mod iam_validator;
+mod role;
+mod service;

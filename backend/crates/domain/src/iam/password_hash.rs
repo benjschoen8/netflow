@@ -6,21 +6,13 @@ use std::fmt;
 pub struct PasswordHash(String);
 
 impl PasswordHash {
-    pub fn new(hash: impl Into<String>) -> Self {
-        let h = hash.into();
-        if h.trim().is_empty() {
-            panic!("PasswordHash cannot be empty");
+    pub fn new(val: String) -> Result<Self, SharedError> {
+        if val.is_empty() {
+            return Err(SharedError::Empty("[PasswordHash:val] cannot be empty"));
         }
-        Self(h)
-    }
-
-    pub fn as_str(&self) -> &str {
-        &self.0
-    }
-}
-
-impl fmt::Debug for PasswordHash {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "[REDACTED]")
+        if val.chars().any(|c| c.is_control()) {
+            return Err(SharedError::InvalidFormat("[PasswordHash:val] contains illegal format (control characters)"));
+        }
+        Ok(Self(val))
     }
 }

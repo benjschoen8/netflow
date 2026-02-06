@@ -6,22 +6,13 @@ use crate::shared::shared_error::SharedError;
 pub struct Username(String);
 
 impl Username {
-    pub fn new(raw: String) -> Result<Self, SharedError> {
-        if raw.is_empty() {
-            return Err(SharedError::Empty(
-                "[Username:raw] cannot be empty"
-            ));
+    pub fn new(val: String) -> Result<Self, SharedError> {
+        if val.is_empty() {
+            return Err(SharedError::Empty("[Username:val] cannot be empty"));
         }
-        if raw.chars().any(|c| c.is_control()) {
-            return Err(SharedError::InvalidFormat(
-                "[Username:raw] contains illegal format (control characters)"
-            ));
+        if val.chars().any(|c| c.is_control()) {
+            return Err(SharedError::InvalidFormat("[Username:val] contains illegal format (control characters)"));
         }
-
-        Ok(Self(raw))
-    }
-
-    pub fn as_str(&self) -> &str {
-        &self.0
+        Ok(Self(val))
     }
 }

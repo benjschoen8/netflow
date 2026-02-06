@@ -23,12 +23,12 @@ impl Money {
     pub fn add(self, other: Self) -> Result<Self, SharedError> {
         if self.currency != other.currency {
             return Err(SharedError::Operational(
-                "[Money:currency] contains operational failure (mismatch between currencies)"
+                "[Money:add] contains operational failure (mismatch between currencies)"
             ));
         }
 
         let new_amount = self.amount.checked_add(other.amount)
-            .ok_or(SharedError::Operational("[Money:amount] contains operational failure (arithmetic overflow)"))?;
+            .ok_or(SharedError::Operational("[Money:add] contains operational failure (arithmetic overflow)"))?;
 
         Ok(Self {
             amount: new_amount,
@@ -39,16 +39,16 @@ impl Money {
     pub fn sub(self, other: Self) -> Result<Self, SharedError> {
         if self.currency != other.currency {
             return Err(SharedError::Operational(
-                "[Money:currency] contains operational failure (mismatch between currencies)"
+                "[Money:sub] contains operational failure (mismatch between currencies)"
             ));
         }
 
         let new_amount = self.amount.checked_sub(other.amount)
-            .ok_or(SharedError::Operational("[Money:amount] contains operational failure (arithmetic underflow)"))?;
+            .ok_or(SharedError::Operational("[Money:sub] contains operational failure (arithmetic underflow)"))?;
 
         if new_amount.is_sign_negative() {
             return Err(SharedError::Operational(
-                "[Money:amount] contains operational failure (negative result)"
+                "[Money:sub] contains operational failure (negative result)"
             ));
         }
 
