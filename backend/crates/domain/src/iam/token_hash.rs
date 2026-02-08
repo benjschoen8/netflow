@@ -5,16 +5,14 @@ use sea_orm::entity::prelude::*;
 pub struct TokenHash(String);
 
 impl TokenHash {
-    pub fn new(hash: impl Into<String>) -> Self {
-        let h = hash.into();
-        if h.trim().is_empty() {
-            panic!("TokenHash cannot be empty");
+    pub fn new(val: String) -> Result<Self, SharedError> {
+        if val.is_empty() {
+            return Err(SharedError::Empty("[TokenHash] cannot be empty"));
         }
-        Self(h)
-    }
-
-    pub fn as_str(&self) -> &str {
-        &self.0
+        if val.chars().any(|c| c.is_control()) {
+            return Err(SharedError::InvalidFormat("[TokenHash] contains illegal format (control characters)"));
+        }
+        Ok(Self(val))
     }
 }
 

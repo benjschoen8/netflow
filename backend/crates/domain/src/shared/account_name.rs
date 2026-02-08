@@ -7,10 +7,10 @@ pub struct AccountName(String);
 impl AccountName {
     pub fn new(name: String) -> Result<Self, SharedError> {
         if name.is_empty() {
-            return Err(SharedError::Empty("[AccountName:name] cannot be empty"));
+            return Err(SharedError::Empty("[AccountName] cannot be empty"));
         }
         if name.chars().any(|c| c.is_control()) {
-            return Err(SharedError::InvalidFormat("[AccountName:name] contains illegal format (control characters)"));
+            return Err(SharedError::InvalidFormat("[AccountName] contains illegal format (control characters)"));
         }
         Ok(Self(name))
     }

@@ -4,11 +4,13 @@ use serde::{Deserialize, Serialize};
 pub struct Service(String);
 
 impl Service {
-    pub fn new(raw: String) -> Self {
-        Self(raw)
-    }
-
-    pub fn as_str(&self) -> &str {
-        &self.0
+    pub fn new(val: String) -> Result<Self, SharedError> {
+        if val.is_empty() {
+            return Err(SharedError::Empty("[Service] cannot be empty"));
+        }
+        if val.chars().any(|c| c.is_control()) {
+            return Err(SharedError::InvalidFormat("[Service] contains illegal format (control characters)"));
+        }
+        Ok(Self(val))
     }
 }

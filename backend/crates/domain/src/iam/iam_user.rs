@@ -11,13 +11,9 @@ use crate::iam::password_hash::PasswordHash;
 pub struct IamUser {
     id: UserId,
     username: Username,
-
     #[serde(skip_serializing)]
     password_hash: PasswordHash,
-
     role: Role,
-    created_at: DateTime<Utc>,
-    updated_at: DateTime<Utc>,
 }
 
 impl IamUser {
@@ -27,8 +23,6 @@ impl IamUser {
             username,
             password_hash,
             role: Role::User,
-            created_at: Utc::now(),
-            updated_at: Utc::now(),
         }
     }
 

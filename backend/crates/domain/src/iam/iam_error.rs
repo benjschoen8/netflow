@@ -10,4 +10,7 @@ pub enum IamError {
 
     #[error("Invalid credentials provided")]
     InvalidCredentials,
+    
+    #[error("Policy Violation: {0}")]
+    PolicyViolation(String),
 }

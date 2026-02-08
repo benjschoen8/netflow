@@ -1,9 +1,10 @@
-subject = "username"
-min_len = 3
-max_len = 30
+subject = "email"
 illegal_characters = [
     ' ', '\t',
     '\'', '"', '`',
     ';',
     '\\', '/'
+]
+must_contain = [
+    '@', '.'
 ]

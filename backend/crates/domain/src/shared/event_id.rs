@@ -10,7 +10,7 @@ impl EventId {
     
     pub fn from_uuid(id: Uuid) -> Result<Self, SharedError> {
         if id.is_nil() {
-            return Err(SharedError::InvalidFormat("[EventId:id] contains illegal format (all zeros)"));
+            return Err(SharedError::InvalidFormat("[EventId] contains illegal format (all zeros)"));
         }
         Ok(Self(id))
     }

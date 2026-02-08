@@ -1,6 +1,5 @@
-subject = "username"
-min_len = 3
-max_len = 30
+subject = "phone"
+all_numbers = true
 illegal_characters = [
     ' ', '\t',
     '\'', '"', '`',

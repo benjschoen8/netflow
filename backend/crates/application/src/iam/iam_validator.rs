@@ -1,5 +1,4 @@
-use crate::iam::iam_error::IamError;
-use crate::iam::policy::Policy;
+use crate::iam::input_policy::InputPolicy;
 
 #[derive(Debug, Clone, Copy, Default)]
 pub struct IamValidator;
@@ -9,7 +8,8 @@ impl IamValidator {
         Self
     }
 
-    pub fn validate<P: Policy>(&self, policy: &P, input: &str) -> Result<(), IamError> {
+    pub fn validate<P: InputPolicy>(&self, policy: &P, input: String) -> Result<(), SharedError> {
+        let subject = policy.subject();
         self.check_presence(policy, input)?;
         self.check_illegal_chars(policy, input)?;
         self.check_length(policy, input)?;
@@ -18,43 +18,43 @@ impl IamValidator {
         Ok(())
     }
 
-    fn check_presence<P: Policy>(&self, policy: &P, input: &str) -> Result<(), IamError> {
+    fn check_presence<P: InputPolicy>(&self, policy: &P, input: &str) -> Result<(), IamError> {
         if input.is_empty() {
-            return Err(IamError::Empty(policy.subject()));
+            return Err(SharedError::Empty("[IamValidator:input] cannot be empty"));
         }
         Ok(())
     }
 
-    fn check_illegal_chars<P: Policy>(&self, policy: &P, input: &str) -> Result<(), IamError> {
+    fn check_illegal_chars<P: InputPolicy>(&self, policy: &P, input: &str) -> Result<(), IamError> {
         let subject = policy.subject();
         let forbidden_list = policy.illegal_characters();
 
         for c in input.chars() {
             if c == '\u{0000}' || c.is_control() {
-                return Err(IamError::SecurityViolation(subject));
+                return Err(SharedError::InvalidFormat("[IamValidator:input] contains control characters"));
             }
 
             if forbidden_list.contains(&c) {
-                return Err(IamError::IllegalCharacter(subject, forbidden_list.to_vec()));
+                return Err(SharedError::InvalidFormat("[IamValidator:input] contains control characters"));
             }
         }
         Ok(())
     }
 
-    fn check_length<P: Policy>(&self, policy: &P, input: &str) -> Result<(), IamError> {
+    fn check_length<P: InputPolicy>(&self, policy: &P, input: &str) -> Result<(), IamError> {
         let len = input.len();
         let subject = policy.subject();
 
         if len < policy.min_len() {
-            return Err(IamError::TooShort(subject, policy.min_len()));
+            return Err(SharedError::InvalidFormat("[IamValidator:input] length too short"));
         }
         if len > policy.max_len() {
-            return Err(IamError::TooLong(subject, policy.max_len()));
+            return Err(SharedError::InvalidFormat("[IamValidator:input] length too long"));
         }
         Ok(())
     }
 
-    fn check_complexity<P: Policy>(&self, policy: &P, input: &str) -> Result<(), IamError> {
+    fn check_complexity<P: InputPolicy>(&self, policy: &P, input: &str) -> Result<(), IamError> {
         let mut upper = false;
         let mut lower = false;
         let mut digit = false;

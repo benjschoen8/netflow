@@ -10,7 +10,7 @@ impl AccountId {
     
     pub fn from_uuid(id: Uuid) -> Result<Self, SharedError> {
         if id.is_nil() {
-            return Err(SharedError::InvalidFormat("[AccountId:id] contains illegal format (all zeros)"));
+            return Err(SharedError::InvalidFormat("[AccountId] contains illegal format (all zeros)"));
         }
         Ok(Self(id))
     }
