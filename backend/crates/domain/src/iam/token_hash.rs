@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use sea_orm::entity::prelude::*;
+use crate::shared::shared_error::SharedError;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, DeriveValueType)]
 pub struct TokenHash(String);

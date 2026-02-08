@@ -13,7 +13,7 @@ pub struct AccessClaim {
     subject: UserId,
     role: Role,
     time_frame: TimeFrame,
-    service: Servide,
+    service: Service,
 }
 
 impl AccessClaim {

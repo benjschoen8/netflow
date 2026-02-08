@@ -1,8 +1,9 @@
 use serde::{Deserialize, Serialize};
 use sea_orm::entity::prelude::*;
 use std::fmt;
+use crate::shared::shared_error::SharedError;
 
-#[derive(Clone, PartialEq, Eq, Serialize, Deserialize, DeriveValueType)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, DeriveValueType)]
 pub struct PasswordHash(String);
 
 impl PasswordHash {

@@ -1,6 +1,8 @@
 mod username;
 mod password_hash;
 mod iam_user;
+mod email;
+mod phone;
 mod user_preferences;
 mod user_repository;
 mod iam_error;
@@ -10,8 +12,5 @@ mod refresh_token;
 mod access_claim;
 mod session_repository;
 mod input_policy;
-mod password_policy;
-mod username_policy;
-mod iam_validator;
 mod role;
 mod service;

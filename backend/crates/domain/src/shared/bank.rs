@@ -2,8 +2,8 @@ use serde::{Deserialize, Serialize};
 use sea_orm::entity::prelude::*;
 use crate::shared::shared_error::SharedError;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub struct Bank(String)
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct Bank(String);
 
 impl Bank {
     pub fn new(val: String) -> Result<Self, SharedError> {
@@ -13,6 +13,6 @@ impl Bank {
         if val.chars().any(|c| c.is_control()) {
             return Err(SharedError::InvalidFormat("[Bank] contains illegal format (control characters)"));
         }
-        Ok(Self(raw))
+        Ok(Self(val))
     }
 }

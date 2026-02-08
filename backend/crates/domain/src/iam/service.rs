@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
+use crate::shared::shared_error::SharedError;
 
-#[derive(Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Service(String);
 
 impl Service {

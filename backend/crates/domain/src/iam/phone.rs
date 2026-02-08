@@ -1,5 +1,5 @@
-use crate::shared::shared_error::SharedError;
 use serde::{Serialize, Deserialize};
+use crate::shared::shared_error::SharedError;
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct Phone {
