@@ -8,16 +8,24 @@ pub struct Email {
 }
 
 impl Email {
-    pub(crate) fn new(
+    pub fn new(
         address: String, 
         sub_address: Option<String>, 
         domain: String
-    ) -> Self {
-        Self { 
+    ) -> Result<Self, SharedError> {
+        if address.is_empty() {
+            return Err(SharedError::Empty("[Email:address] cannot be empty".to_string()));
+        }
+
+        if domain.is_empty() {
+            return Err(SharedError::Empty("[Email:domain] cannot be empty".to_string()));
+        }
+
+        Ok(Self { 
             address, 
             sub_address, 
             domain 
-        }
+        })
     }
 
     pub fn full_address(&self) -> String {
