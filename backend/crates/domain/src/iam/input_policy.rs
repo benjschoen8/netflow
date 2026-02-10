@@ -2,15 +2,15 @@ use crate::iam::iam_error::IamError;
 
 #[derive(Debug, Clone)]
 pub struct InputPolicy {
-    pub subject: &'static str,
-    pub min_len: Option<usize>,
-    pub max_len: Option<usize>,
-    pub require_uppercase: bool,
-    pub require_lowercase: bool,
-    pub require_number: bool,
-    pub require_symbol: bool,
-    pub all_numbers: bool,
-    pub illegal_characters: Vec<char>,
+    subject: &'static str,
+    min_len: Option<usize>,
+    max_len: Option<usize>,
+    require_uppercase: bool,
+    require_lowercase: bool,
+    require_number: bool,
+    require_symbol: bool,
+    all_numbers: bool,
+    illegal_characters: Vec<char>,
 }
 
 
@@ -73,5 +73,9 @@ impl InputPolicy {
         if self.require_symbol && !symbol { return Err(IamError::PolicyViolation(format!("[InputPolicy] missing symbol: {}", sub))); }
 
         Ok(())
+    }
+
+    pub fn subject(&self) -> &'static str {
+        return self.subject
     }
 }
