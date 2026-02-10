@@ -9,7 +9,7 @@ use crate::iam::jwt_id::JwtId;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AccessClaim {
-    jid: JwtId,
+    id: JwtId,
     // Standard JWT Claims (RFC 7519)
     subject: UserId,
     role: Role,
@@ -19,14 +19,14 @@ pub struct AccessClaim {
 
 impl AccessClaim {
     pub fn new(
-        jid: JwtId,
+        id: JwtId,
         subject: UserId, 
         role: Role, 
         time_frame: TimeFrame, 
         service: Service
     ) -> Self {
         Self {
-            jid, 
+            id, 
             subject, 
             role, 
             time_frame, 
@@ -34,8 +34,8 @@ impl AccessClaim {
         }
     }
 
-    pub fn jwt_id(&self) -> JwtId {
-        self.jid
+    pub fn id(&self) -> JwtId {
+        self.id
     }
 
     pub fn subject(&self) -> UserId {
