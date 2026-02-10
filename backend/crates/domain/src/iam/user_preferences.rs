@@ -12,11 +12,11 @@ pub struct UserPreferences {
 }
 
 impl UserPreferences {
-    pub fn default_for_user(user_id: UserId) -> Self {
+    pub fn create(user_id: UserId) -> Self {
         Self {
             user_id,
             preferred_currency: Currency::TWD,
-            theme: "SYSTEM".to_string(),
+            theme: "DEFAULT".to_string(),
         }
     }
 }

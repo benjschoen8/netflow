@@ -41,6 +41,25 @@ impl IamUser {
         }
     }
 
+    pub fn create(
+        username: Username, 
+        password_hash: PasswordHash, 
+        email: Email, 
+        phone: Option<Phone>,
+        role: Role,
+    ) -> Self {
+        let user_id = UserId::create();
+        Self {
+            id: user_id,
+            username,
+            password_hash,
+            email,
+            phone,
+            role,
+            preferences: UserPreferences::create(user_id),
+        }
+    }
+
     pub fn id(&self) -> UserId {
         self.id
     }
