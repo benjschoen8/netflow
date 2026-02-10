@@ -1,5 +1,5 @@
+use chrono::{DateTime, Utc, Duration};
 use serde::{Deserialize, Serialize};
-use chrono::{DateTime, Utc};
 use crate::shared::shared_error::SharedError;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -20,11 +20,18 @@ impl TimeFrame {
 
     pub fn create(duration: Duration) -> Result<Self, SharedError> {
         let now = Utc::now();
-        if duration.num_seconds() <= 0 {
-             return Err(SharedError::Operational("[TimeFrame] duration must be positive".into()));
-        }
         
-        let expires_at = now + duration;
+        if duration <= Duration::zero() {
+             return Err(SharedError::Operational(
+                 "[TimeFrame] duration must be positive".into()
+             ));
+        }
+
+        let expires_at = now.checked_add_signed(duration)
+            .ok_or_else(|| SharedError::Operational(
+                "[TimeFrame] arithmetic overflow calculating expiration".into()
+            ))?;
+
         Self::new(now, expires_at)
     }
 

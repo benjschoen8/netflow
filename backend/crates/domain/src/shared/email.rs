@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use crate::shared::shared_error::SharedError;
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Email {
     address: String,
@@ -14,11 +16,11 @@ impl Email {
         domain: String
     ) -> Result<Self, SharedError> {
         if address.is_empty() {
-            return Err(SharedError::Empty("[Email:address] cannot be empty".to_string()));
+            return Err(SharedError::Empty("[Email:address] cannot be empty"));
         }
 
         if domain.is_empty() {
-            return Err(SharedError::Empty("[Email:domain] cannot be empty".to_string()));
+            return Err(SharedError::Empty("[Email:domain] cannot be empty"));
         }
 
         Ok(Self { 

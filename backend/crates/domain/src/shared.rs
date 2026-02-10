@@ -2,6 +2,8 @@ pub mod event_id;
 pub mod user_id;
 pub mod account_id;
 pub mod account_name;
+pub mod email;
+pub mod phone;
 pub mod bank;
 pub mod account_number;
 pub mod currency;

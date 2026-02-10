@@ -1,14 +1,13 @@
 mod username;
 mod password_hash;
 mod iam_user;
-mod email;
-mod phone;
 mod user_preferences;
 mod user_repository;
 mod iam_error;
 mod time_frame;
 mod token_hash;
 mod refresh_token;
+mod jwt_id;
 mod access_claim;
 mod session_repository;
 mod input_policy;

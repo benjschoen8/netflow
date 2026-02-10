@@ -1,7 +1,6 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-// --- INTEGRATION: Import types from Shared Kernel ---
 use crate::shared::user_id::UserId;
 use crate::shared::account_id::AccountId;
 use crate::shared::account_name::AccountName;

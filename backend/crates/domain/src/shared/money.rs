@@ -1,8 +1,9 @@
-use crate::shared::currency::Currency;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 use std::ops::{Add, Sub};
+
 use crate::shared::shared_error::SharedError;
+use crate::shared::currency::Currency;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Money {
@@ -18,50 +19,28 @@ impl Money {
         Ok(Self { amount, currency })
     }
 
-    pub fn from(amount: Decimal, currency: Currency) -> Result<Self, SharedError> {
-        if amount.is_sign_negative() {
-            return Err(SharedError::InvalidFormat("[Money:amount] contains invalid state (negative value)"));
-        }
-        Ok(Self { amount, currency })
-    }
-}
-
-impl Money {
-    pub fn add(self, other: Self) -> Result<Self, SharedError> {
-        if self.currency != other.currency {
-            return Err(SharedError::Operational(
-                "[Money:add] contains operational failure (mismatch between currencies)"
-            ));
-        }
+    pub fn add(&self, other: &Self) -> Result<Self, SharedError> {
+        self.ensure_same_currency(other)?;
 
         let new_amount = self.amount.checked_add(other.amount)
-            .ok_or(SharedError::Operational("[Money:add] contains operational failure (arithmetic overflow)"))?;
+            .ok_or(SharedError::Operational("[Money:add] arithmetic overflow"))?;
 
-        Ok(Self {
-            amount: new_amount,
-            currency: self.currency,
-        })
+        Self::new(new_amount, self.currency)
     }
 
-    pub fn sub(self, other: Self) -> Result<Self, SharedError> {
-        if self.currency != other.currency {
-            return Err(SharedError::Operational(
-                "[Money:sub] contains operational failure (mismatch between currencies)"
-            ));
-        }
+    pub fn sub(&self, other: &Self) -> Result<Self, SharedError> {
+        self.ensure_same_currency(other)?;
 
         let new_amount = self.amount.checked_sub(other.amount)
-            .ok_or(SharedError::Operational("[Money:sub] contains operational failure (arithmetic underflow)"))?;
+            .ok_or(SharedError::Operational("[Money:sub] arithmetic underflow"))?;
 
-        if new_amount.is_sign_negative() {
-            return Err(SharedError::Operational(
-                "[Money:sub] contains operational failure (negative result)"
-            ));
+        Self::new(new_amount, self.currency)
+    }
+
+    fn ensure_same_currency(&self, other: &Self) -> Result<(), SharedError> {
+        if self.currency != other.currency {
+            return Err(SharedError::Operational("[Money] currency mismatch"));
         }
-
-        Ok(Self {
-            amount: new_amount,
-            currency: self.currency,
-        })
+        Ok(())
     }
 }

@@ -6,7 +6,7 @@ use crate::shared::shared_error::SharedError;
 pub struct AccountId(Uuid);
 
 impl AccountId {
-    pub fn new(id: Uuid) -> Result<Self, SharedError> {
+    pub fn restore(id: Uuid) -> Result<Self, SharedError> {
         if id.is_nil() {
             return Err(SharedError::InvalidFormat("[AccountId] contains illegal format (all zeros)"));
         }
