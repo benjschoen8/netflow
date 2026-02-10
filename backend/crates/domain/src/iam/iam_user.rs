@@ -6,7 +6,6 @@ use crate::shared::email::Email;
 use crate::iam::role::Role;
 use crate::iam::username::Username;
 use crate::iam::password_hash::PasswordHash;
-use crate::iam::user_preferences::UserPreferences;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct IamUser {
@@ -17,7 +16,6 @@ pub struct IamUser {
     email: Email,
     phone: Option<Phone>,
     role: Role,
-    preferences: UserPreferences,
 }
 
 impl IamUser {
@@ -28,7 +26,6 @@ impl IamUser {
         email: Email, 
         phone: Option<Phone>,
         role: Role,
-        preferences: UserPreferences,
     ) -> Self {
         Self {
             id,
@@ -37,7 +34,6 @@ impl IamUser {
             email,
             phone,
             role,
-            preferences,
         }
     }
 
@@ -56,7 +52,6 @@ impl IamUser {
             email,
             phone,
             role,
-            preferences: UserPreferences::create(user_id),
         }
     }
 
@@ -78,9 +73,5 @@ impl IamUser {
 
     pub fn phone(&self) -> Option<&Phone> {
         self.phone.as_ref()
-    }
-    
-    pub fn preferences(&self) -> &UserPreferences {
-        &self.preferences
     }
 }

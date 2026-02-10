@@ -1,7 +1,6 @@
 mod username;
 mod password_hash;
 mod iam_user;
-mod user_preferences;
 mod user_repository;
 mod iam_error;
 mod time_frame;

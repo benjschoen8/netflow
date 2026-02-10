@@ -16,7 +16,6 @@ pub struct InputPolicy {
 
 impl InputPolicy {
     pub fn validate(&self, input: &str) -> Result<(), IamError> {
-        // 1. Presence Guard (Single Source of Truth: min_len)
         let min = self.min_len.unwrap_or(0);
         if input.is_empty() {
             if min > 0 {
@@ -25,7 +24,6 @@ impl InputPolicy {
             return Ok(());
         }
 
-        // 2. The Single-Pass Scan (O(N))
         let mut count = 0;
         let mut has_upper = false;
         let mut has_lower = false;
@@ -53,7 +51,6 @@ impl InputPolicy {
             else if !c.is_alphanumeric() { has_symbol = true; }
         }
 
-        // 3. Final Evaluation (O(1))
         self.evaluate_constraints(count, has_upper, has_lower, has_digit, has_symbol)
     }
 
