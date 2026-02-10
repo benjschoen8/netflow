@@ -23,7 +23,7 @@ impl Email {
 
         Ok(Self { 
             address, 
-            sub_address, 
+            sub_address: sub_address.filter(|s| !s.trim().is_empty()), 
             domain 
         })
     }

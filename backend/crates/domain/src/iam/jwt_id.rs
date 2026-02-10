@@ -3,14 +3,14 @@ use serde::{Deserialize, Serialize};
 use crate::shared::shared_error::SharedError;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub struct EventId(Uuid);
+pub struct JwtId(Uuid);
 
-impl EventId {
+impl JwtId {
     pub fn new() -> Self { Self(Uuid::new_v4()) }
     
-    pub fn from(id: Uuid) -> Result<Self, SharedError> {
+    pub fn from_uuid(id: Uuid) -> Result<Self, SharedError> {
         if id.is_nil() {
-            return Err(SharedError::InvalidFormat("[EventId] contains illegal format (all zeros)"));
+            return Err(SharedError::InvalidFormat("[JwtId] contains illegal format (all zeros)"));
         }
         Ok(Self(id))
     }

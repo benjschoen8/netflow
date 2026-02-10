@@ -4,8 +4,11 @@ use serde::{Deserialize, Serialize};
 pub struct Password(String);
 
 impl Password {
-    pub fn new(raw: String) -> Self {
-        Self(raw)
+    pub fn new(val: String) -> Result<Self, SharedError> {
+        if val.is_empty{
+            return Err(SharedError::Empty("[Password:val] cannot be empty"));
+        }
+        Ok(Self(val))
     }
 
     pub fn as_str(&self) -> &str {

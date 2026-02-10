@@ -1,14 +1,15 @@
 use chrono::{Duration, Utc};
 use serde::{Deserialize, Serialize};
 
-// --- INTEGRATION: Import types from Shared Kernel ---
 use crate::shared::user_id::UserId;
 use crate::iam::role::Role;
 use crate::iam::time_frame::TimeFrame;
 use crate::iam::service::Service;
+use crate::iam::jwt_id::JwtId;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AccessClaim {
+    jid: JwtId,
     // Standard JWT Claims (RFC 7519)
     subject: UserId,
     role: Role,
@@ -18,17 +19,23 @@ pub struct AccessClaim {
 
 impl AccessClaim {
     pub fn new(
+        jid: JwtId,
         subject: UserId, 
         role: Role, 
         time_frame: TimeFrame, 
         service: Service
     ) -> Self {
-        Self { 
+        Self {
+            jid, 
             subject, 
             role, 
             time_frame, 
             service 
         }
+    }
+
+    pub fn jwt_id(&self) -> JwtId {
+        self.jid
     }
 
     pub fn subject(&self) -> UserId {

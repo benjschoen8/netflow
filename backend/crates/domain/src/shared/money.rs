@@ -17,6 +17,13 @@ impl Money {
         }
         Ok(Self { amount, currency })
     }
+
+    pub fn from(amount: Decimal, currency: Currency) -> Result<Self, SharedError> {
+        if amount.is_sign_negative() {
+            return Err(SharedError::InvalidFormat("[Money:amount] contains invalid state (negative value)"));
+        }
+        Ok(Self { amount, currency })
+    }
 }
 
 impl Money {

@@ -3,15 +3,15 @@ use serde::{Deserialize, Serialize};
 use crate::shared::shared_error::SharedError;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub struct UserId(Uuid);
+pub struct AccountId(Uuid);
 
-impl UserId {
-    pub fn new() -> Self { Self(Uuid::new_v4()) }
-    
-    pub fn from_uuid(id: Uuid) -> Result<Self, SharedError> {
+impl AccountId {
+    pub fn from(id: Uuid) -> Result<Self, SharedError> {
         if id.is_nil() {
-            return Err(SharedError::InvalidFormat("[UserId] contains illegal format (all zeros)"));
+            return Err(SharedError::InvalidFormat("[AccountId] contains illegal format (all zeros)"));
         }
         Ok(Self(id))
     }
+    
+    pub fn new() -> Self { Self(Uuid::new_v4()) }
 }

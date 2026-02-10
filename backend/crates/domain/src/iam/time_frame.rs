@@ -28,7 +28,8 @@ impl TimeFrame {
         Self::new(now, expires_at)
     }
 
-    pub fn is_active_at(&self, now: DateTime<Utc>) -> bool {
+    pub fn is_active(&self) -> bool {
+        let now = Utc::now();
         now >= self.issued_at && now < self.expires_at
     }
 }

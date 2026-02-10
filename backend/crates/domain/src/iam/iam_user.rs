@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+
 use crate::shared::user_id::UserId;
 use crate::iam::role::Role;
 use crate::iam::username::Username;

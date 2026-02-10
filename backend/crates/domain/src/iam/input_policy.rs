@@ -37,13 +37,13 @@ impl InputPolicy {
 
             if self.illegal_characters.contains(&c) || c.is_control() {
                 return Err(IamError::PolicyViolation(format!(
-                    "[{}] contains illegal character: '{}'", self.subject, c
+                    "[InputPolicy] contains illegal character: '{}'", self.subject
                 )));
             }
 
             if self.all_numbers && !c.is_ascii_digit() {
                  return Err(IamError::PolicyViolation(format!(
-                    "[{}] must contain only digits", self.subject
+                    "[InputPolicy] must contain only digits: '{}'", self.subject
                 )));
             }
 
@@ -61,16 +61,16 @@ impl InputPolicy {
         let sub = self.subject;
 
         if let Some(min) = self.min_len {
-            if count < min { return Err(IamError::PolicyViolation(format!("[{}] too short", sub))); }
+            if count < min { return Err(IamError::PolicyViolation(format!("[InputPolicy] too short: {}", sub))); }
         }
         if let Some(max) = self.max_len {
-            if count > max { return Err(IamError::PolicyViolation(format!("[{}] too long", sub))); }
+            if count > max { return Err(IamError::PolicyViolation(format!("[InputPolicy] too long: {}", sub))); }
         }
 
-        if self.require_uppercase && !upper { return Err(IamError::PolicyViolation(format!("[{}] missing uppercase", sub))); }
-        if self.require_lowercase && !lower { return Err(IamError::PolicyViolation(format!("[{}] missing lowercase", sub))); }
-        if self.require_number && !digit { return Err(IamError::PolicyViolation(format!("[{}] missing number", sub))); }
-        if self.require_symbol && !symbol { return Err(IamError::PolicyViolation(format!("[{}] missing symbol", sub))); }
+        if self.require_lowercase && !lower { return Err(IamError::PolicyViolation(format!("[InputPolicy] missing lowercase: {}", sub))); }
+        if self.require_uppercase && !upper { return Err(IamError::PolicyViolation(format!("[InputPolicy] missing uppercase: {}", sub))); }
+        if self.require_number && !digit { return Err(IamError::PolicyViolation(format!("[InputPolicy] missing number: {}", sub))); }
+        if self.require_symbol && !symbol { return Err(IamError::PolicyViolation(format!("[InputPolicy] missing symbol: {}", sub))); }
 
         Ok(())
     }

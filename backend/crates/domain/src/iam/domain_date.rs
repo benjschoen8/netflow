@@ -1,5 +1,6 @@
 use chrono::{DateTime, Utc, TimeZone};
 use serde::{Deserialize, Serialize};
+
 use crate::shared::shared_error::SharedError;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
@@ -11,7 +12,7 @@ impl DomainDate {
             .single()
             .map(Self)
             .ok_or(SharedError::InvalidFormat(
-                "[DomainDate:raw] contains illegal date values (non-existent day)"
+                "[DomainDate:val] contains illegal date values (non-existent day)"
             ))
     }
 
