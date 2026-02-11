@@ -1,4 +1,3 @@
-use sea_orm::entity::prelude::*;
 use crate::shared::shared_error::SharedError;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
