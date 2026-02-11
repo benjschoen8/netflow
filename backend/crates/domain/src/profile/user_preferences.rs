@@ -1,10 +1,7 @@
-use serde::{Deserialize, Serialize};
-use serde_json::Value as JsonValue;
-
 use crate::shared::user_id::UserId;
 use crate::shared::currency::Currency;
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct UserPreferences {
     pub user_id: UserId,
     pub preferred_currency: Currency,

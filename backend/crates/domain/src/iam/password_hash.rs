@@ -1,8 +1,7 @@
-use sea_orm::entity::prelude::*;
 use std::fmt;
 use crate::shared::shared_error::SharedError;
 
-#[derive(Debug, Clone, PartialEq, Eq, DeriveValueType)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PasswordHash(String);
 
 impl PasswordHash {

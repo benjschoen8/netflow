@@ -1,6 +1,6 @@
 use crate::shared::shared_error::SharedError;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AccountNumber(String);
 
 impl AccountNumber {

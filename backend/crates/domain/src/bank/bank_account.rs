@@ -1,5 +1,4 @@
 use chrono::{DateTime, Utc};
-use serde::{Deserialize, Serialize};
 
 use crate::shared::user_id::UserId;
 use crate::shared::account_id::AccountId;
@@ -8,7 +7,7 @@ use crate::shared::bank::Bank;
 use crate::shared::account_number::AccountNumber;
 use crate::shared::money::Money;
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct BankAccount {
     pub user_id: UserId,
     pub account_id: AccountId,

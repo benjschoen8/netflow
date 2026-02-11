@@ -1,6 +1,6 @@
 use crate::shared::shared_error::SharedError;
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Email {
     address: String,
     sub_address: Option<String>,

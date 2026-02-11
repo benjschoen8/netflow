@@ -1,7 +1,6 @@
-use sea_orm::entity::prelude::*;
 use crate::shared::shared_error::SharedError;
 
-#[derive(Debug, Clone, PartialEq, Eq, DeriveValueType)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TokenHash(String);
 
 impl TokenHash {
