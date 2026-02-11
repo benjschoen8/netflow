@@ -1,5 +1,3 @@
-use serde::{Deserialize, Serialize};
-
 use crate::shared::user_id::UserId;
 use crate::shared::phone::Phone;
 use crate::shared::email::Email;
@@ -7,11 +5,10 @@ use crate::iam::role::Role;
 use crate::iam::username::Username;
 use crate::iam::password_hash::PasswordHash;
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct IamUser {
     id: UserId,
     username: Username,
-    #[serde(skip_serializing)]
     password_hash: PasswordHash,
     email: Email,
     phone: Option<Phone>,

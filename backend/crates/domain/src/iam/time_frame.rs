@@ -1,8 +1,7 @@
 use chrono::{DateTime, Utc, Duration};
-use serde::{Deserialize, Serialize};
 use crate::shared::shared_error::SharedError;
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TimeFrame {
     issued_at: DateTime<Utc>,
     expires_at: DateTime<Utc>,

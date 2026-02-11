@@ -1,8 +1,6 @@
-use serde::{Serialize, Deserialize};
-
 use crate::shared::shared_error::SharedError;
 
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Phone {
     region_code: String,
     number: String,

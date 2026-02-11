@@ -1,7 +1,6 @@
-use serde::{Deserialize, Serialize};
 use crate::shared::shared_error::SharedError;
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Theme(String);
 impl Theme {
 

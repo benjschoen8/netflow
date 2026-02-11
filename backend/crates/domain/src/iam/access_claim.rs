@@ -1,5 +1,4 @@
 use chrono::{Duration, Utc};
-use serde::{Deserialize, Serialize};
 
 use crate::shared::user_id::UserId;
 use crate::iam::role::Role;
@@ -7,7 +6,7 @@ use crate::iam::time_frame::TimeFrame;
 use crate::iam::service::Service;
 use crate::iam::jwt_id::JwtId;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct AccessClaim {
     id: JwtId,
     // Standard JWT Claims (RFC 7519)

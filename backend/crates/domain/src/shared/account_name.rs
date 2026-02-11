@@ -1,7 +1,6 @@
-use serde::{Deserialize, Serialize};
 use crate::shared::shared_error::SharedError;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct AccountName(String);
 
 impl AccountName {

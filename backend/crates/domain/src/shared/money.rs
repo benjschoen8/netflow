@@ -1,11 +1,10 @@
 use rust_decimal::Decimal;
-use serde::{Deserialize, Serialize};
 use std::ops::{Add, Sub};
 
 use crate::shared::shared_error::SharedError;
 use crate::shared::currency::Currency;
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Money {
     pub amount: Decimal,
     pub currency: Currency,

@@ -1,9 +1,8 @@
 use chrono::{DateTime, Utc, TimeZone};
-use serde::{Deserialize, Serialize};
 
 use crate::shared::shared_error::SharedError;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct DomainDate(DateTime<Utc>);
 
 impl DomainDate {

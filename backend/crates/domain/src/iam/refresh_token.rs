@@ -1,10 +1,8 @@
-use serde::{Deserialize, Serialize};
-
 use crate::shared::user_id::UserId;
 use crate::iam::time_frame::TimeFrame;
 use crate::iam::token_hash::TokenHash;
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct RefreshToken {
     token_hash: TokenHash,
     user_id: UserId,

@@ -1,5 +1,3 @@
-use serde::{Deserialize, Serialize};
-
 use crate::shared::shared_error::SharedError;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]

@@ -1,8 +1,7 @@
-use serde::{Deserialize, Serialize};
 use std::fmt;
 use crate::shared::shared_error::SharedError;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Currency {
     USD,
     TWD,

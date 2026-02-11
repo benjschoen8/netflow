@@ -1,8 +1,7 @@
 use uuid::Uuid;
-use serde::{Deserialize, Serialize};
 use crate::shared::shared_error::SharedError;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct EventId(Uuid);
 
 impl EventId {
