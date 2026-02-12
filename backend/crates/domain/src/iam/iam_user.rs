@@ -33,11 +33,11 @@ impl AggregateRoot for IamUser {
     fn clear_events(&mut self) {
         self.events.clear();
     }
-
+    
 }
 
 impl IamUser {
-    pub fn new(
+    pub fn restore(
         id: UserId,
         username: Username, 
         password_hash: PasswordHash, 
@@ -63,16 +63,22 @@ impl IamUser {
         phone: Option<Phone>,
         role: Role,
     ) -> Self {
-        let user_id = UserId::create();
         Self {
             events: Vec::new(),
-            id: user_id,
+            id: UserId::create(),
             username,
             password_hash,
             email,
             phone,
             role,
-        }
+        };
+
+        user.record_event(IamEvent::UserRegistered {
+            user_id: user.id,
+            role: user.role,
+        });
+
+        user
     }
 
     pub fn id(&self) -> UserId {
