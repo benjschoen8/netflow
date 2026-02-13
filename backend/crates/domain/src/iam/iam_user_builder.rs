@@ -12,9 +12,9 @@ use crate::iam::role::Role;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct IamUserBuilder {
         id: Option<UserId>,
-        username: Option<Username>, 
-        password_hash: PasswordHash, 
-        email: Email, 
+        username: Option<Username>,
+        password_hash: PasswordHash,
+        email: Email,
         phone: Option<Phone>,
         role: Role,
 }
@@ -30,16 +30,28 @@ pub fn new() -> Self {
     }
 }
 
-pub fn set_id(&mut self, id: String) {
+pub fn with_id(&mut self, id: String) -> self {
     self.id = UserId::new(id);
+    self
 }
 
-pub fn set_username(&mut self, username: String) {
+pub fn with_username(&mut self, username: String) -> self {
     self.username = Username::new(username);
+    self
 }
 
-pub fn password_hash(&mut self, password_hash: String) {
-    self.password_hash = PasswordHash::new(password_hash)
+pub fn with_password_hash(&mut self, password_hash: String) -> self {
+    self.password_hash = PasswordHash::new(password_hash);
+    self
+}
+
+pub fn with_email(&mut self, email: String) -> self {
+    self.email = Email::parse(email);
+    self
+}
+
+pub fn with_phone(&mut self, ) -> {
+
 }
 
 pub fn 

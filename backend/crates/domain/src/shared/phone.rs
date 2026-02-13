@@ -1,31 +1,48 @@
 use crate::shared::shared_error::SharedError;
+use phonenumber::PhoneNumber;
+use std::str::FromStr;
+use std::cmp::Ordering;
 
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Phone {
-    region_code: String,
-    number: String,
+    internal_value: PhoneNumber,
+}
+
+impl Eq for Phone {}
+
+impl PartialOrd for Phone {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Phone {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.as_e164().cmp(&other.as_e164())
+    }
+}
+
+impl FromStr for Phone {
+    type Err = SharedError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let parsed = phonenumber::parse(None, s)
+            .map_err(|_| SharedError::InvalidFormat("[Phone] Invalid phone number format"))?;
+
+        if !parsed.is_valid() {
+            return Err(SharedError::InvalidFormat("[Phone] Number is impossible or invalid for its region"));
+        }
+
+        Ok(Self { internal_value: parsed })
+    }
 }
 
 impl Phone {
-    pub fn new(region_code: String, number: String) -> Result<Self, SharedError> {
-        if region_code.is_empty() {
-            return Err(SharedError::Empty("[Phone:region_code] cannot be empty"));
-        }
-        if !region_code.chars().all(|c| c.is_ascii_digit()) {
-            return Err(SharedError::InvalidFormat("[Phone:region_code] must contain only digits"));
-        }
-
-        if number.is_empty() {
-            return Err(SharedError::Empty("[Phone:number] cannot be empty"));
-        }
-        if !number.chars().all(|c| c.is_ascii_digit()) {
-            return Err(SharedError::InvalidFormat("[Phone:number] must contain only digits"));
-        }
-
-        Ok(Self { region_code, number })
+    pub fn parse(s: &str) -> Result<Self, SharedError> {
+        Self::from_str(s)
     }
 
-    pub fn full_number(&self) -> String {
-        format!("+{}{}", self.region_code, self.number)
+    pub fn as_e164(&self) -> String {
+        self.internal_value.format().mode(phonenumber::Mode::E164).to_string()
     }
 }

@@ -8,23 +8,39 @@ pub struct Email {
 }
 
 impl Email {
-    pub fn new(
-        address: String, 
-        sub_address: Option<String>, 
-        domain: String
-    ) -> Result<Self, SharedError> {
-        if address.is_empty() {
-            return Err(SharedError::Empty("[Email:address] cannot be empty"));
+    pub fn parse(raw_email: String) -> Result<Self, SharedError> {
+        if raw_email.trim().is_empty() {
+            return Err(SharedError::Empty("[Email] cannot be empty"));
         }
 
+        let (full_local, domain) = raw_email
+            .split_once('@')
+            .ok_or_else(|| SharedError::InvalidFormat("[Email] Missing '@' symbol"))?;
+
+        if full_local.is_empty() {
+            return Err(SharedError::InvalidFormat("[Email] Missing local part"));
+        }
         if domain.is_empty() {
-            return Err(SharedError::Empty("[Email:domain] cannot be empty"));
+            return Err(SharedError::InvalidFormat("[Email] Missing domain part"));
         }
 
-        Ok(Self { 
-            address, 
-            sub_address: sub_address.filter(|s| !s.trim().is_empty()), 
-            domain 
+        let (address, sub_address) = match full_local.split_once('+') {
+            Some((local, sub)) => (local.to_string(), Some(sub.to_string())),
+            None => (full_local.to_string(), None),
+        };
+
+        Ok(Self {
+            address,
+            sub_address,
+            domain: domain.to_string(),
+        })
+    }
+
+    pub fn restore(local: String, sub: Option<String>, domain: String) -> Result<Self, SharedError> {
+        Ok(Self {
+            address: local,
+            sub_address: sub,
+            domain,
         })
     }
 
@@ -35,7 +51,7 @@ impl Email {
         }
     }
 
-    pub fn canonical_address(&self) -> String {
+    pub fn unique_address(&self) -> String {
         format!("{}@{}", self.address, self.domain)
     }
 }

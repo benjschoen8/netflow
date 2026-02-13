@@ -1,9 +1,9 @@
-use crate::shared::domain_event::DomainEvent;
+use crate::shared::event::Event;
 
 pub trait AggregateRoot {
-    fn events(&self) -> &[DomainEvent];
+    fn events(&self) -> &[dyn Event];
     
-    fn record_event(&mut self, event: DomainEvent);
+    fn record_event<T: Event>(&mut self, event: T);
     
     fn clear_events(&mut self);
 }

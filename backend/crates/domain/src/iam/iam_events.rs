@@ -15,7 +15,7 @@ pub enum IamEvent {
     },
 }
 
-impl DomainEvent for IamEvent {
+impl Event for IamEvent {
     fn event_id(&self) -> EventId {
         return self.event_id
     }
