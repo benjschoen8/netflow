@@ -1,5 +1,6 @@
 pub mod event_id;
 pub mod user_id;
+pub mod username;
 pub mod account_id;
 pub mod account_name;
 pub mod email;
