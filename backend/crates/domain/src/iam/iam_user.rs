@@ -4,7 +4,7 @@ use crate::shared::email::Email;
 use crate::iam::role::Role;
 use crate::shared::username::Username;
 use crate::iam::password_hash::PasswordHash;
-use crate::iam::iam_events::IamEvent;
+use crate::iam::iam_event::IamEvent;
 use crate::shared::event::Event;
 use crate::shared::aggregate_root::AggregateRoot;
 use crate::iam::iam_error::IamError;
@@ -13,7 +13,7 @@ use crate::shared::shared_error::SharedError;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct IamUser {
-    events: Vec<DomainEvent>,
+    events: Vec<IamEvent>,
     id: UserId,
     username: Username,
     password_hash: PasswordHash,
@@ -23,18 +23,18 @@ pub struct IamUser {
 }
 
 impl AggregateRoot for IamUser {
-    fn events(&self) -> &[Self::IamEvent] {
+    type Event = IamEvent;
+    fn events(&self) -> &[Self::Event] {
         &self.events
     }
 
-    fn record_event(&mut self, event: Self::IamEvent) {
+    fn record_event(&mut self, event: Self::Event) {
         self.events.push(event);
     }
 
     fn clear_events(&mut self) {
         self.events.clear();
     }
-    
 }
 
 impl IamUser {

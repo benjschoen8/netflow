@@ -3,7 +3,7 @@ mod password;
 mod password_hash;
 mod user_repository;
 mod iam_error;
-mod iam_events;
+mod iam_event;
 mod time_frame;
 mod token_hash;
 mod refresh_token;
