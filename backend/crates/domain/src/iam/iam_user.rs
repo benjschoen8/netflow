@@ -56,7 +56,7 @@ impl IamUser {
         }
     }
 
-    pub fn create(
+    pub fn register(
         username: Username, 
         password_hash: PasswordHash, 
         email: Email, 
