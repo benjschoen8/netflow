@@ -5,6 +5,7 @@ use shared::Email;
 use crate::domain::role::Role;
 use crate::domain::password_hash::PasswordHash;
 use crate::domain::iam_event::IamEvent;
+use crate::domain::user_status::UserStatus;
 use shared::AggregateRoot;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -16,6 +17,7 @@ pub struct IamUser {
     email: Email,
     phone: Option<Phone>,
     role: Role,
+    status: UserStatus,
 }
 
 impl AggregateRoot for IamUser {
@@ -41,6 +43,7 @@ impl IamUser {
         email: Email, 
         phone: Option<Phone>,
         role: Role,
+        user_status: UserStatus,
     ) -> Self {
         Self {
             events: Vec::new(),
@@ -50,29 +53,8 @@ impl IamUser {
             email,
             phone,
             role,
+            user_status,
         }
-    }
-
-    pub fn register(
-        username: Username, 
-        password_hash: PasswordHash, 
-        email: Email, 
-        phone: Option<Phone>,
-        role: Role,
-    ) -> Self {
-        let mut user = Self {
-            events: Vec::new(),
-            id: UserId::create(),
-            username,
-            password_hash,
-            email,
-            phone,
-            role,
-        };
-
-        user.record_event(IamEvent::user_registered(user.id, user.role));
-
-        user
     }
 
     pub fn id(&self) -> UserId {
@@ -93,5 +75,32 @@ impl IamUser {
 
     pub fn phone(&self) -> Option<&Phone> {
         self.phone.as_ref()
+    }
+
+    pub fn status(&self) -> &UserStatus {
+        &self.user_status
+    }
+    
+    pub fn register(
+        username: Username, 
+        password_hash: PasswordHash, 
+        email: Email, 
+        phone: Option<Phone>,
+        role: Role,
+    ) -> Self {
+        let mut user = Self {
+            events: Vec::new(),
+            id: UserId::create(),
+            username,
+            password_hash,
+            email,
+            phone,
+            role,
+            user_status: UserStatus::default(),
+        };
+
+        user.record_event(IamEvent::user_registered(user.id, user.email, user.role));
+
+        user
     }
 }

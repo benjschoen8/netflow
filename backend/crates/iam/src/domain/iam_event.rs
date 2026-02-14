@@ -11,17 +11,19 @@ pub enum IamEvent {
         event_id: EventId,
         occurred_on: EventTimestamp,
         user_id: UserId,
+        email: Email,
         role: Role,
     },
 }
 
 impl IamEvent {
-    pub fn user_registered(user_id: UserId, role: Role) -> Self {
+    pub fn user_registered(user_id: UserId, email:Email, role: Role) -> Self {
         Self::UserRegistered {
             event_id: EventId::new(),
             occurred_on: EventTimestamp::now(),
             user_id,
-            role,
+            email,
+            role, 
         }
     }
 }
