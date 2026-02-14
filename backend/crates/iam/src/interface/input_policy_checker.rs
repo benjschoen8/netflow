@@ -3,7 +3,7 @@ use crate::input_policy::InputPolicy;
 use shared::SharedError;
 
 #[derive(Debug, Clone, Copy, Default)]
-pub struct InputValidator;
+pub struct InputPolicyChecker;
 
 impl InputValidator {
     pub fn new() -> Self {
