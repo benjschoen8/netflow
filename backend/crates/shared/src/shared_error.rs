@@ -1,3 +1,5 @@
+use crate::sanitizable::Sanitizable;
+
 #[derive(thiserror::Error, Debug, Clone, PartialEq, Eq)]
 pub enum SharedError {
     #[error("{0}")]
@@ -10,8 +12,8 @@ pub enum SharedError {
     Operational(&'static str),
 }
 
-impl SharedError {
-    pub fn sanitize(&self) -> String {
+impl Sanitizable for SharedError {
+    fn safe_message(&self) -> String {
         match self {
             SharedError::Empty(_) => "A required field was missing".to_string(),
             SharedError::InvalidFormat(_) => "The provided data format is invalid".to_string(),

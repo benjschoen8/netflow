@@ -1,12 +1,8 @@
-use shared::UserId;
-use shared::Username;
-use shared::Phone;
-use shared::Email;
+use shared::{UserId, Username, Phone, Email, AggregateRoot};
 use crate::domain::role::Role;
 use crate::domain::password_hash::PasswordHash;
 use crate::domain::iam_event::IamEvent;
 use crate::domain::user_status::UserStatus;
-use shared::AggregateRoot;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct IamUser {
@@ -17,7 +13,7 @@ pub struct IamUser {
     email: Email,
     phone: Option<Phone>,
     role: Role,
-    status: UserStatus,
+    user_status: UserStatus,
 }
 
 impl AggregateRoot for IamUser {
@@ -86,7 +82,6 @@ impl IamUser {
         password_hash: PasswordHash, 
         email: Email, 
         phone: Option<Phone>,
-        role: Role,
     ) -> Self {
         let mut user = Self {
             events: Vec::new(),
@@ -95,11 +90,11 @@ impl IamUser {
             password_hash,
             email,
             phone,
-            role,
+            role: Role::default(),
             user_status: UserStatus::default(),
         };
 
-        user.record_event(IamEvent::user_registered(user.id, user.email, user.role));
+        user.record_event(IamEvent::user_registered(user.id, user.username.clone(), user.email.clone(), user.role));
 
         user
     }

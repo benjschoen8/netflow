@@ -18,7 +18,7 @@ impl UserStatus {
             (Self::Suspended, Self::Active) => Ok(next),
             (Self::Pending, Self::Active) => Ok(next),
             (Self::Active, Self::Suspended) | (Self::Active, Self::Deactivated) => Ok(next),
-            _ => Err(IamError::InvalidFormat("[UserStatus] Illegal state transition")),
+            _ => Err(IamError::InvalidStatusTransition),
         }
     }
 }

@@ -1,8 +1,10 @@
 pub(crate) mod iam_user;
+pub(crate) mod user_status;
 pub(crate) mod role;
 pub(crate) mod access_claim;
 pub(crate) mod password;
 pub(crate) mod password_hash;
+pub(crate) mod hasher;
 pub(crate) mod jwt_id;
 pub(crate) mod token_hash;
 pub(crate) mod refresh_token;

@@ -1,9 +1,6 @@
 use chrono::{DateTime, Utc};
-use shared::UserId;
 use crate::domain::role::Role;
-use shared::EventId;
-use shared::DomainEvent;
-use shared::EventTimestamp;
+use shared::{EventId, EventTimestamp, UserId, Username, Email, DomainEvent};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum IamEvent {
@@ -11,17 +8,19 @@ pub enum IamEvent {
         event_id: EventId,
         occurred_on: EventTimestamp,
         user_id: UserId,
+        username: Username,
         email: Email,
         role: Role,
     },
 }
 
 impl IamEvent {
-    pub fn user_registered(user_id: UserId, email:Email, role: Role) -> Self {
+    pub fn user_registered(user_id: UserId, username: Username, email:Email, role: Role) -> Self {
         Self::UserRegistered {
             event_id: EventId::new(),
             occurred_on: EventTimestamp::now(),
             user_id,
+            username,
             email,
             role, 
         }

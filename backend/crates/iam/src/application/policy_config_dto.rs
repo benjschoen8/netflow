@@ -1,7 +1,6 @@
-use serde::Deserialize;
 use std::fs;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug)]
 struct PolicyConfigDto {
     min_length: Option<usize>,
     max_length: Option<usize>,
