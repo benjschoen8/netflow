@@ -3,9 +3,9 @@ use crate::iam::input_policy::InputPolicy;
 use crate::shared::shared_error::SharedError;
 
 #[derive(Debug, Clone, Copy, Default)]
-pub struct IamValidator;
+pub struct InputValidator;
 
-impl IamValidator {
+impl InputValidator {
     pub fn new() -> Self {
         Self
     }
