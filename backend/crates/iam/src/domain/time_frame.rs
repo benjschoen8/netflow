@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc, Duration};
-use crate:shared::shared_error::SharedError;
+use shared::SharedError;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TimeFrame {

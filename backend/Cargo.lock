@@ -316,6 +316,7 @@ dependencies = [
  "chrono",
  "phonenumber",
  "rust_decimal",
+ "shared",
  "thiserror",
  "uuid",
 ]

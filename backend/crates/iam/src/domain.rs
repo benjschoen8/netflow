@@ -4,7 +4,6 @@ mod access_claim;
 
 mod password;
 mod password_hash;
-mod username;
 mod jwt_id;
 mod token_hash;
 mod refresh_token;

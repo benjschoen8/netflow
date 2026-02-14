@@ -1,4 +1,4 @@
-use crate::input_policy::InputPolicy;
+use crate::domain::input_policy::InputPolicy;
 
 pub struct InputPolicyBuilder {
     subject: &'static str,
