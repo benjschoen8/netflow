@@ -1,15 +1,11 @@
 use crate::shared::user_id::UserId;
+use crate::shared::username::Username;
 use crate::shared::phone::Phone;
 use crate::shared::email::Email;
 use crate::iam::role::Role;
-use crate::shared::username::Username;
 use crate::iam::password_hash::PasswordHash;
 use crate::iam::iam_event::IamEvent;
-use crate::shared::event::Event;
 use crate::shared::aggregate_root::AggregateRoot;
-use crate::iam::iam_error::IamError;
-use crate::shared::shared_error::SharedError;
-
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct IamUser {
@@ -64,7 +60,7 @@ impl IamUser {
         phone: Option<Phone>,
         role: Role,
     ) -> Self {
-        let user = Self {
+        let mut user = Self {
             events: Vec::new(),
             id: UserId::create(),
             username,
@@ -74,10 +70,7 @@ impl IamUser {
             role,
         };
 
-        user.record_event(IamEvent::UserRegistered {
-            user_id: user.id,
-            role: user.role,
-        });
+        user.record_event(IamEvent::user_registered(user.id, user.role));
 
         user
     }

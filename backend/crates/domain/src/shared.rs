@@ -11,4 +11,4 @@ pub mod currency;
 pub mod money;
 pub mod shared_error;
 pub mod aggregate_root;
-pub mod event;
+pub mod domain_event;

@@ -1,9 +1,9 @@
-use crate::shared::event::Event;
-
 pub trait AggregateRoot {
-    fn events(&self) -> &[Event];
+    type Event;
 
-    fn record_event<T: Event>(&mut self, event: T);
+    fn events(&self) -> &[Self::Event];
+
+    fn record_event(&mut self, event: Self::Event);
 
     fn clear_events(&mut self);
 }
