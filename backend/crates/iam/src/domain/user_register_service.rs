@@ -1,5 +1,5 @@
-use crate::iam::iam_user::IamUser;
-use crate::iam::hasher::Hasher;
+use crate::iam_user::IamUser;
+use crate::hasher::Hasher;
 
 
 #[derive(Debug, Clone, PartialEq, Eq)]

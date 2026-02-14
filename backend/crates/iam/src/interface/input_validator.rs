@@ -1,6 +1,6 @@
-use crate::iam::iam_error::IamError;
-use crate::iam::input_policy::InputPolicy;
-use crate::shared::shared_error::SharedError;
+use crate::iam_error::IamError;
+use crate::input_policy::InputPolicy;
+use crate:shared::shared_error::SharedError;
 
 #[derive(Debug, Clone, Copy, Default)]
 pub struct InputValidator;

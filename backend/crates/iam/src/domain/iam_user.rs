@@ -1,11 +1,11 @@
-use crate::shared::user_id::UserId;
-use crate::shared::username::Username;
-use crate::shared::phone::Phone;
-use crate::shared::email::Email;
-use crate::iam::role::Role;
-use crate::iam::password_hash::PasswordHash;
-use crate::iam::iam_event::IamEvent;
-use crate::shared::aggregate_root::AggregateRoot;
+use crate:shared::user_id::UserId;
+use crate:shared::username::Username;
+use crate:shared::phone::Phone;
+use crate:shared::email::Email;
+use crate::role::Role;
+use crate::password_hash::PasswordHash;
+use crate::iam_event::IamEvent;
+use crate:shared::aggregate_root::AggregateRoot;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct IamUser {

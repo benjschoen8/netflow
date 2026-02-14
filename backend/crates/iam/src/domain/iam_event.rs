@@ -1,8 +1,8 @@
 use chrono::{DateTime, Utc};
-use crate::shared::user_id::UserId;
-use crate::iam::role::Role;
-use crate::shared::event_id::EventId;
-use crate::shared::domain_event::DomainEvent;
+use crate:shared::user_id::UserId;
+use crate::role::Role;
+use crate:shared::event_id::EventId;
+use crate:shared::domain_event::DomainEvent;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum IamEvent {

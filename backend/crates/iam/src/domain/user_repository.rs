@@ -1,7 +1,7 @@
 use async_trait::async_trait;
-use crate::shared::user_id::UserId;
-use crate::iam::iam_user::IamUser;
-use crate::iam::iam_error::IamError;
+use crate:shared::user_id::UserId;
+use crate::iam_user::IamUser;
+use crate::iam_error::IamError;
 
 #[async_trait]
 pub trait UserRepository: Send + Sync {

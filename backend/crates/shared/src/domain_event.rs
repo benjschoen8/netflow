@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc};
-use crate::shared::event_id::EventId;
-use crate::shared::event_time_stamp::EventTimestamp;
+use crate::event_id::EventId;
+use crate::event_time_stamp::EventTimestamp;
 
 pub trait DomainEvent: Send + Sync {
     fn event_id(&self) -> EventId;

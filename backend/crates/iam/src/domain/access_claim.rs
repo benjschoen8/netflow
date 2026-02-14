@@ -1,10 +1,10 @@
 use chrono::{Duration, Utc};
 
-use crate::shared::user_id::UserId;
-use crate::iam::role::Role;
-use crate::iam::time_frame::TimeFrame;
-use crate::iam::service::Service;
-use crate::iam::jwt_id::JwtId;
+use crate:shared::user_id::UserId;
+use crate::role::Role;
+use crate::time_frame::TimeFrame;
+use crate::service::Service;
+use crate::jwt_id::JwtId;
 
 #[derive(Debug, Clone)]
 pub struct AccessClaim {

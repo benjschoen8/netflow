@@ -1,6 +1,6 @@
-use crate::shared::user_id::UserId;
-use crate::iam::time_frame::TimeFrame;
-use crate::iam::token_hash::TokenHash;
+use crate:shared::user_id::UserId;
+use crate::time_frame::TimeFrame;
+use crate::token_hash::TokenHash;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct RefreshToken {

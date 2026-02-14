@@ -1,5 +1,5 @@
 use std::fmt;
-use crate::shared::shared_error::SharedError;
+use crate::shared_error::SharedError;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Currency {

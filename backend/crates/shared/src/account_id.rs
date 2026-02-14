@@ -1,6 +1,6 @@
 use uuid::Uuid;
 
-use crate::shared::shared_error::SharedError;
+use crate::shared_error::SharedError;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct AccountId(Uuid);

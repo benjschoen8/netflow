@@ -1,4 +1,4 @@
-use crate::iam::iam_error::IamError;
+use crate::iam_error::IamError;
 
 #[derive(Debug, Clone)]
 pub struct InputPolicy {

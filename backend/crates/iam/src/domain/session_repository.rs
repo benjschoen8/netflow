@@ -1,7 +1,7 @@
 use async_trait::async_trait;
-use crate::shared::user_id::UserId;
-use crate::iam::refresh_token::RefreshToken;
-use crate::iam::iam_error::IamError;
+use crate:shared::user_id::UserId;
+use crate::refresh_token::RefreshToken;
+use crate::iam_error::IamError;
 
 #[async_trait]
 pub trait SessionRepository: Send + Sync {
