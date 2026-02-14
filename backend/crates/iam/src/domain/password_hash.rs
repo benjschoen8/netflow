@@ -1,5 +1,5 @@
 use std::fmt;
-use shared::SharedError;
+use shared::domain::SharedError;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PasswordHash(String);

@@ -1,4 +1,4 @@
-use crate::sanitizable::Sanitizable;
+use crate::domain::sanitizable::Sanitizable;
 
 #[derive(thiserror::Error, Debug, Clone, PartialEq, Eq)]
 pub enum SharedError {

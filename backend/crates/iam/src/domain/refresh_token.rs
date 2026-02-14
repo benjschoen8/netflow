@@ -1,4 +1,4 @@
-use shared::UserId;
+use shared::domain::UserId;
 use crate::domain::time_frame::TimeFrame;
 use crate::domain::token_hash::TokenHash;
 

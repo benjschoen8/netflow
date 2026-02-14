@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use shared::UserId;
+use shared::domain::UserId;
 use crate::domain::refresh_token::RefreshToken;
 use crate::domain::iam_error::IamError;
 

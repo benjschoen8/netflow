@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use shared::{Username, Email, Phone};
+use shared::domain::{Username, Email, Phone};
 use crate::domain::iam_error::IamError;
 use crate::domain::iam_user::IamUser;
 use crate::domain::user_repository::UserRepository;

@@ -1,4 +1,4 @@
-use shared::SharedError;
+use shared::domain::SharedError;
 
 #[derive(Clone, PartialEq, Eq)]
 pub struct Password(String);

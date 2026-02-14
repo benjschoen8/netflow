@@ -1,5 +1,5 @@
 use thiserror::Error;
-use shared::{SharedError, Sanitizable};
+use shared::domain::{SharedError, Sanitizable};
 
 #[derive(Error, Debug, Clone, PartialEq, Eq)]
 pub enum IamError {

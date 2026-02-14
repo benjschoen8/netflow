@@ -1,4 +1,4 @@
-use crate::shared_error::SharedError; //
+use crate::domain::shared_error::SharedError;
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Phone(String);

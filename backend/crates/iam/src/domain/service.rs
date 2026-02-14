@@ -1,4 +1,4 @@
-use shared::SharedError;
+use shared::domain::SharedError;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Service(String);

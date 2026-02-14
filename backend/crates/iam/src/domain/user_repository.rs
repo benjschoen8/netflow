@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use shared::{UserId, Username, Email};
+use shared::domain::{UserId, Username, Email};
 use crate::domain::iam_user::IamUser;
 use crate::domain::iam_error::IamError;
 

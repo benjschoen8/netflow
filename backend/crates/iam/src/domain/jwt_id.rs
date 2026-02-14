@@ -1,5 +1,5 @@
 use uuid::Uuid;
-use shared::SharedError;
+use shared::domain::SharedError;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct JwtId(Uuid);

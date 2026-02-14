@@ -1,4 +1,4 @@
-use shared::{UserId, Username, Phone, Email, AggregateRoot};
+use shared::domain::{UserId, Username, Phone, Email, AggregateRoot};
 use crate::domain::role::Role;
 use crate::domain::password_hash::PasswordHash;
 use crate::domain::iam_event::IamEvent;

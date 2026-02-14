@@ -1,8 +1,8 @@
 use rust_decimal::Decimal;
 use std::ops::{Add, Sub};
 
-use crate::shared_error::SharedError;
-use crate::currency::Currency;
+use crate::domain::shared_error::SharedError;
+use crate::domain::currency::Currency;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Money {

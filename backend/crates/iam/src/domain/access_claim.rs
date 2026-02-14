@@ -1,6 +1,6 @@
 use chrono::{Duration, Utc};
 
-use shared::UserId;
+use shared::domain::UserId;
 use crate::domain::role::Role;
 use crate::domain::time_frame::TimeFrame;
 use crate::domain::service::Service;
