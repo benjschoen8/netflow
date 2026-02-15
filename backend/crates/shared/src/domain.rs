@@ -12,6 +12,7 @@ pub(crate) mod email;
 pub(crate) mod phone;
 pub(crate) mod sanitizable;
 pub(crate) mod shared_error;
+pub(crate) mod aggregate_root_id;
 pub(crate) mod aggregate_root;
 
 pub use crate::domain::event_id::EventId;
@@ -28,4 +29,5 @@ pub use crate::domain::email::Email;
 pub use crate::domain::phone::Phone;
 pub use crate::domain::sanitizable::Sanitizable;
 pub use crate::domain::shared_error::SharedError;
+pub use crate::domain::aggregate_root_id::AggregateRootId;
 pub use crate::domain::aggregate_root::AggregateRoot;
