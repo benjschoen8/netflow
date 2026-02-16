@@ -3,8 +3,8 @@ use uuid::Uuid;
 use crate::domain::event_id::EventId;
 use crate::domain::correlation_id::CorrelationId;
 use crate::domain::domain_event::DomainEvent;
-use crate::domain::event_metadata::EventMetadata;
-use crate::domain::event_envelope::EventEnvelope;
+use crate::application::event_metadata::EventMetadata;
+use crate::application::event_envelope::EventEnvelope;
 
 pub struct EnvelopeFactory {
     service_name: &'static str,

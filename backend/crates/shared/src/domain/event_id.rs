@@ -5,6 +5,8 @@ use crate::domain::shared_error::SharedError;
 pub struct EventId(Uuid);
 
 impl EventId {
+    pub fn uuid(&self) -> Uuid { self.0 }
+
     pub fn new() -> Self { Self(Uuid::new_v4()) }
     
     pub fn from(id: Uuid) -> Result<Self, SharedError> {

@@ -51,7 +51,7 @@ impl Email {
         }
     }
 
-    pub fn unique_address(&self) -> String {
+    pub fn base_address(&self) -> String {
         format!("{}@{}", self.address, self.domain)
     }
 }

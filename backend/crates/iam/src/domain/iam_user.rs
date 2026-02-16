@@ -8,7 +8,7 @@ use crate::domain::user_status::UserStatus;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct IamUser {
     events: Vec<IamEvents>,
-    id: UserId,
+    user_id: UserId,
     username: Username,
     password_hash: PasswordHash,
     email: Email,
@@ -34,7 +34,7 @@ impl AggregateRoot for IamUser {
 
 impl IamUser {
     pub fn restore(
-        id: UserId,
+        user_id: UserId,
         username: Username, 
         password_hash: PasswordHash, 
         email: Email, 
@@ -44,7 +44,7 @@ impl IamUser {
     ) -> Self {
         Self {
             events: Vec::new(),
-            id,
+            user_id,
             username,
             password_hash,
             email,
@@ -54,8 +54,8 @@ impl IamUser {
         }
     }
 
-    pub fn id(&self) -> UserId {
-        self.id
+    pub fn user_id(&self) -> UserId {
+        self.user_id
     }
 
     pub fn username(&self) -> &Username {
@@ -86,7 +86,7 @@ impl IamUser {
     ) -> Self {
         let mut user = Self {
             events: Vec::new(),
-            id: UserId::create(),
+            user_id: UserId::create(),
             username,
             password_hash,
             email,
@@ -94,7 +94,7 @@ impl IamUser {
             role: Role::default(),
             user_status: UserStatus::default(),
         };
-        let event_data = UserRegistered::user_registered(user.id, user.username.clone(), user.email.clone(), user.role);
+        let event_data = UserRegistered::user_registered(user.user_id, user.username.clone(), user.email.clone(), user.phone.clone(), user.role);
         user.record_event(IamEvents::UserRegistered(event_data));
 
         user
