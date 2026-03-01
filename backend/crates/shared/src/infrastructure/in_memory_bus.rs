@@ -1,6 +1,13 @@
-#[derive(Clone, Default)]
+use std::sync::{Arc, RwLock};
+
+use crate::domain::shared_error::SharedError;
+use crate::doamin::domain_event::DomainEvent;
+use crate::infrastructure::concrete_handler_wrapper::ConcreteHandlerWrapper;
+use crate::infrastructure::handler_wrapper::HandlerWrapper;
+
+#[derive(Default, Clone)]
 pub struct InMemoryEventBus {
-    subscribers: Arc<RwLock<HashMap<TypeId, Vec<Box<dyn ErasedEventHandler>>>>>,
+    subscribers: Arc<RwLock<HashMap<TypeId, Vec<Box<dyn HandlerWrapper>>>>>,
 }
 
 impl InMemoryEventBus {
@@ -13,38 +20,28 @@ impl InMemoryEventBus {
         E: DomainEvent + 'static,
         H: EventHandler<E> + Send + Sync + 'static,
     {
-        let mut subscribers = self.subscribers.write().await;
+        let mut sub_lock = self.subscribers.write().await;
         let type_id = TypeId::of::<E>();
-        
-        let wrapper = EventHandlerWrapper {
+        let wrapper = Box::new(ConcreteHandlerWrapper {
             handler,
             _marker: std::marker::PhantomData,
-        };
+        });
 
-        subscribers
-            .entry(type_id)
-            .or_insert_with(Vec::new)
-            .push(Box::new(wrapper));
+        sub_lock.entry(type_id).or_insert_with(Vec::new).push(wrapper);
     }
-}
 
-#[async_trait]
-impl EventBus for InMemoryEventBus {
-    async fn publish(
-        &self, 
-        event: &(dyn DomainEvent + Send + Sync), 
-        correlation_id: CorrelationId
-    ) -> Result<(), SharedError> {
-        let subscribers = self.subscribers.read().await;
-        
-        if let Some(handlers) = subscribers.get(&type_id) {
+    pub async fn publish<E>(&self, event: &E) -> Result<(), SharedError>
+    where
+        E: DomainEvent + 'static,
+    {
+        let sub_lock = self.subscribers.read().await;
+        let type_id = TypeId::of::<E>();
+
+        if let Some(handlers) = sub_lock.get(&type_id) {
             for handler in handlers {
-                if let Err(e) = handler.handle(event.as_any(), correlation_id.clone()).await {
-                    eprintln!("Error handling event: {:?}", e); 
-                }
+                handler.handle_event(event as &dyn Any).await?;
             }
         }
-        
         Ok(())
     }
 }
