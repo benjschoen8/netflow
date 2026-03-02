@@ -8,13 +8,13 @@ use crate::domain::hasher::Hasher;
 use crate::domain::password::Password;
 
 pub struct UserRegisterService {
-    user_repo: Arc<dyn UserRepository>,
+    user_query: Arc<dyn UserRepository>,
     hasher: Arc<dyn Hasher>,
 }
 
 impl UserRegisterService {
-    pub fn new(user_repo: Arc<dyn UserRepository>, hasher: Arc<dyn Hasher>) -> Self {
-        Self { user_repo, hasher }
+    pub fn new(user_query: Arc<dyn UserRepository>, hasher: Arc<dyn Hasher>) -> Self {
+        Self { user_query, hasher }
     }
 
     pub async fn register(
@@ -25,11 +25,11 @@ impl UserRegisterService {
         phone: Option<Phone>,
     ) -> Result<IamUser, IamError> {
 
-        if self.user_repo.find_by_username(&username).await?.is_some() {
+        if self.user_query.find_by_username(&username).await?.is_some() {
             return Err(IamError::UsernameExists);
         }
 
-        if self.user_repo.find_by_email(&email).await?.is_some() {
+        if self.user_query.find_by_email(&email).await?.is_some() {
             return Err(IamError::EmailExists);
         }
 

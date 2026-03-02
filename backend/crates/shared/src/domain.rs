@@ -1,4 +1,5 @@
 pub(crate) mod event_id;
+pub(crate) mod timestamp;
 pub(crate) mod correlation_id;
 pub(crate) mod domain_event;
 pub(crate) mod user_id;
@@ -14,6 +15,7 @@ pub(crate) mod aggregate_root_id;
 pub(crate) mod aggregate_root;
 
 pub use crate::domain::event_id::EventId;
+pub use crate::domain::timestamp::Timestamp;
 pub use crate::domain::correlation_id::CorrelationId;
 pub use crate::domain::domain_event::DomainEvent;
 pub use crate::domain::user_id::UserId;

@@ -792,6 +792,7 @@ dependencies = [
 name = "shared"
 version = "0.1.0"
 dependencies = [
+ "async-trait",
  "chrono",
  "enum_dispatch",
  "rust_decimal",

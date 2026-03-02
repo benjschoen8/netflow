@@ -1,11 +1,11 @@
-use chrono::{Utc, DateTime};
 use enum_dispatch::enum_dispatch;
 use crate::domain::event_id::EventId;
+use crate::domain::timestamp::Timestamp;
 
 #[enum_dispatch]
 pub trait DomainEvent: Send + Sync {
     fn event_id(&self)-> EventId;
-    fn timestamp(&self)-> DateTime<Utc>;
+    fn occured_on(&self)-> Timestamp;
     fn event_type(&self) -> &'static str;
     fn event_version(&self) -> &'static str;
     fn doamin(&self) -> &'static str;

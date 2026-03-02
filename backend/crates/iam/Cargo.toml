@@ -11,4 +11,4 @@ rust_decimal = "1.40.0"
 thiserror = "2.0.18"
 uuid = { version = "1.20.0", features = ["serde", "v4"] }
 enum_dispatch = "0.3"
-phonenumber = { version = "0.3.9+9.0.21" }
+phonenumber = { version = "0.3.9" }

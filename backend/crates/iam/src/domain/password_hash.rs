@@ -7,10 +7,10 @@ pub struct PasswordHash(String);
 impl PasswordHash {
     pub fn new(val: String) -> Result<Self, SharedError> {
         if val.is_empty() {
-            return Err(SharedError::Empty("[PasswordHash:val] cannot be empty"));
+            return Err(SharedError::Empty("[PasswordHash] cannot be empty"));
         }
         if val.chars().any(|c| c.is_control()) {
-            return Err(SharedError::InvalidFormat("[PasswordHash:val] contains illegal format (control characters)"));
+            return Err(SharedError::InvalidFormat("[PasswordHash] contains illegal format (control characters)"));
         }
         Ok(Self(val))
     }
