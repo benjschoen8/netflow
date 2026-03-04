@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use shared::domain::{AggregateRoot, CorrelationId, Username, Email, Phone};
+use shared::domain::{AggregateRoot, CorrelationId, Username, Email, Phone, Message};
 use shared::application::{EventBus, RepoStore, MessageMapper};
 use crate::domain::iam_error::IamError;
 use crate::domain::iam_events::IamEvents;
@@ -12,26 +12,26 @@ use crate::domain::user_register_service::UserRegisterService;
 use crate::application::register_user_dto::RegisterUserDto;
 
 pub struct UserRegisterUsecase {
-    event_bus: Arc<dyn EventBus>,
+    event_bus: Arc<dyn EventBus<Message = Message<IamEvents>>>,
     user_repo: Arc<dyn RepoStore<IamUser, IamEvents>>,
     register_service: UserRegisterService,
 }
 
 impl UserRegisterUsecase {
     pub fn new(
-        event_bus: Arc<dyn EventBus>, 
+        event_bus: Arc<dyn EventBus<Message = Message<IamEvents>>>, 
         user_repo: Arc<dyn RepoStore<IamUser, IamEvents>>, 
         user_query: Arc<dyn UserRepository>, 
         hasher: Arc<dyn Hasher>, 
     ) -> Self {
-        let register_service = UserRegisterService::new(user_query.clone(), hasher);
+        let register_service = UserRegisterService::new(user_query, hasher);
         Self { event_bus, user_repo, register_service }
     }
 
     pub async fn register(
         &self,
         input: RegisterUserDto,
-        correlation_id: CorrelationId,
+        correlation_id: &CorrelationId,
     ) -> Result<(), IamError> {
         if input.password() != input.confirm_password() {
             return Err(IamError::PasswordMismatch); 

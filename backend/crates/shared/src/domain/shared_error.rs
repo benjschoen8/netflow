@@ -12,7 +12,7 @@ pub enum SharedError {
     Operational(&'static str),
 
     #[error("{0}")]
-    EventPublishFailed(&'static str),
+    EventPublishFailed(String),
 
 }
 

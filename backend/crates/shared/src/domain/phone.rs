@@ -6,7 +6,7 @@ pub struct Phone(String);
 impl Phone {
     pub fn new(value: String) -> Result<Self, SharedError> {
         if value.is_empty() {
-            return Err(SharedError::InvalidFormat("[Phone] cannot be empty")); //
+            return Err(SharedError::InvalidFormat("[Phone] cannot be empty"));
         }
 
         Ok(Self(value.to_string()))

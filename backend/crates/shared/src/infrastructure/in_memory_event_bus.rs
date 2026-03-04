@@ -1,4 +1,6 @@
 use tokio::sync::broadcast;
+use async_trait::async_trait;
+
 use crate::domain::domain_event::DomainEvent;
 use crate::domain::shared_error::SharedError;
 use crate::domain::message::Message;
@@ -12,14 +14,17 @@ where
     sender: broadcast::Sender<Message<E>>,
 }
 
+#[async_trait]
 impl<E> EventBus for InMemoryEventBus<E>
 where E: DomainEvent + Clone + Send + Sync + 'static {
     type Message = Message<E>;
 
-    async fn publish(&self, messages: Vec<Self::Message>) -> Result<(), SharedError> {
+    async fn publiges: Vec<Ssh(&self, messaelf::Message>) -> Result<(), SharedError> {
         for message in messages {
-            self.sender.send(message)
-                .map_err(|_| SharedError::EventPublishFailed(format!("Failed to publish message: {}", message.message_id.to_string())))?;
+            self.sender.send(message.clone())
+                .map_err(|_| SharedError::EventPublishFailed(
+                    format!("Failed to publish message: {}", message.message_id.to_string())
+                ))?;
         }
         Ok(())
     }

@@ -5,7 +5,7 @@ pub struct MessageMapper;
 
 impl MessageMapper {
     pub fn map<E: Clone>(
-        events: &[E], 
+        events: Vec<E>, 
         correlation_id: &CorrelationId
     ) -> Vec<Message<E>> {
         events
