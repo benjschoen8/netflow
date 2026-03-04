@@ -1,4 +1,5 @@
 use uuid::Uuid;
+use std::fmt;
 use crate::domain::shared_error::SharedError;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -16,3 +17,10 @@ impl MessageId {
         Ok(Self(id))
     }
 }
+
+impl fmt::Display for MessageId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+

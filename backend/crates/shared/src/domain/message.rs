@@ -1,4 +1,4 @@
-use crate::message_id::MessageId;
+use crate::domain::message_id::MessageId;
 use crate::domain::correlation_id::CorrelationId;
 
 #[derive(Debug, Clone)]

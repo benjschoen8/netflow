@@ -10,6 +10,10 @@ pub enum SharedError {
     
     #[error("{0}")]
     Operational(&'static str),
+
+    #[error("{0}")]
+    EventPublishFailed(&'static str),
+
 }
 
 impl Sanitizable for SharedError {
@@ -19,6 +23,7 @@ impl Sanitizable for SharedError {
             SharedError::InvalidFormat(_) => "The provided data format is invalid".to_string(),
             SharedError::Operational(_) => 
                 "The requested operation could not be completed due to a logical conflict".to_string(),
+            SharedError::EventPublishFailed(_) => "The event could not be published".to_string(),
         }
     }
 }

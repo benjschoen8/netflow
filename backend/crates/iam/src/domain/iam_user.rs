@@ -30,6 +30,10 @@ impl AggregateRoot for IamUser {
     fn clear_events(&mut self) {
         self.events.clear();
     }
+
+    fn pull_events(&mut self) -> Vec<Self::Event> {
+        std::mem::take(&mut self.events) 
+    }
 }
 
 impl IamUser {

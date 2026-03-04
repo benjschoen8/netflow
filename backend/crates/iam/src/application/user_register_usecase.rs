@@ -1,8 +1,9 @@
 use std::sync::Arc;
 
-use shared::domain::{CorrelationId, Username, Email, Phone};
-use shared::application::RepoStore;
+use shared::domain::{AggregateRoot, CorrelationId, Username, Email, Phone};
+use shared::application::{EventBus, RepoStore, MessageMapper};
 use crate::domain::iam_error::IamError;
+use crate::domain::iam_events::IamEvents;
 use crate::domain::iam_user::IamUser;
 use crate::domain::user_repository::UserRepository;
 use crate::domain::hasher::Hasher;
@@ -11,43 +12,52 @@ use crate::domain::user_register_service::UserRegisterService;
 use crate::application::register_user_dto::RegisterUserDto;
 
 pub struct UserRegisterUsecase {
-    user_repo: Arc<dyn RepoStore<IamUser>>,
+    event_bus: Arc<dyn EventBus>,
+    user_repo: Arc<dyn RepoStore<IamUser, IamEvents>>,
     register_service: UserRegisterService,
 }
 
 impl UserRegisterUsecase {
-    pub fn new(user_repo: Arc<dyn RepoStore<IamUser>>, user_query: Arc<dyn UserRepository>, hasher: Arc<dyn Hasher>) -> Self {
+    pub fn new(
+        event_bus: Arc<dyn EventBus>, 
+        user_repo: Arc<dyn RepoStore<IamUser, IamEvents>>, 
+        user_query: Arc<dyn UserRepository>, 
+        hasher: Arc<dyn Hasher>, 
+    ) -> Self {
         let register_service = UserRegisterService::new(user_query.clone(), hasher);
-        Self { user_repo, register_service }
+        Self { event_bus, user_repo, register_service }
     }
 
     pub async fn register(
         &self,
         input: RegisterUserDto,
         correlation_id: CorrelationId,
-    ) -> Result<IamUser, IamError> {
-        if input.password != input.confirm_password {
+    ) -> Result<(), IamError> {
+        if input.password() != input.confirm_password() {
             return Err(IamError::PasswordMismatch); 
         }
         
-        let username = Username::new(input.username)?;
-        let password = Password::new(input.password)?;
-        let email = Email::parse(input.email)?;
+        let username = Username::new(input.username().to_string())?;
+        let password = Password::new(input.password().to_string())?;
+        let email = Email::parse(input.email().to_string())?;
         
-        let phone = match input.phone {
-            Some(p) => Some(Phone::new(p)?),
-            None => None,
-        };
+        let phone = input.phone()
+                        .map(|p| Phone::new(p.to_string()))
+                        .transpose()?;
 
-        let user = self.register_service.register(
+        let mut user = self.register_service.register(
             username,
             password,
             email,
             phone
         ).await?;
 
-        self.user_repo.save(user.clone(), correlation_id).await?;
+        let messages = MessageMapper::map(user.pull_events(), &correlation_id);
 
-        Ok(user)
+        self.user_repo.save(user, &messages).await?;
+        
+        self.event_bus.publish(messages).await?;
+        
+        Ok(())
     }
 }

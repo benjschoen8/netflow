@@ -6,4 +6,6 @@ pub trait AggregateRoot {
     fn record_event(&mut self, event: Self::Event);
 
     fn clear_events(&mut self);
+
+    fn pull_events(&mut self) -> Vec<Self::Event>;
 }
