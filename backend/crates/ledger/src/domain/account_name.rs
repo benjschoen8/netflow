@@ -1,4 +1,4 @@
-use crate::domain::shared_error::SharedError;
+use shared::domain::shared_error::SharedError;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AccountName(String);
