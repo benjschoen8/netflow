@@ -33,6 +33,11 @@ impl UserRegisterUsecase {
         input: RegisterUserDto,
         correlation_id: &CorrelationId,
     ) -> Result<(), IamError> {
+        
+        if !input.terms_accepted() {
+            return Err(IamError::TermsNotAccepted);
+        }
+
         if input.password() != input.confirm_password() {
             return Err(IamError::PasswordMismatch); 
         }

@@ -1,6 +1,8 @@
+use serde::Serialize;
+
 use crate::domain::shared_error::SharedError;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct Email {
     address: String,
     sub_address: Option<String>,

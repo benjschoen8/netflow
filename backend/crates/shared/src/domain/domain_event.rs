@@ -8,6 +8,6 @@ pub trait DomainEvent: Send + Sync {
     fn occured_on(&self)-> Timestamp;
     fn event_type(&self) -> &'static str;
     fn event_version(&self) -> &'static str;
-    fn doamin(&self) -> &'static str;
+    fn domain(&self) -> &'static str;
     fn service(&self) -> &'static str;
 }

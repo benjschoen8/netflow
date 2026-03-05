@@ -1,7 +1,16 @@
+use serde::Serialize;
+use std::fmt;
+
 use crate::domain::shared_error::SharedError;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct Username(String);
+
+impl fmt::Display for Username {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
 
 impl Username {
     pub fn new(val: String) -> Result<Self, SharedError> {

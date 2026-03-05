@@ -27,10 +27,6 @@ impl AggregateRoot for IamUser {
         self.events.push(event);
     }
 
-    fn clear_events(&mut self) {
-        self.events.clear();
-    }
-
     fn pull_events(&mut self) -> Vec<Self::Event> {
         std::mem::take(&mut self.events) 
     }
@@ -66,6 +62,10 @@ impl IamUser {
         &self.username
     }
 
+    pub fn password_hash(&self) -> &PasswordHash {
+        &self.password_hash
+    }
+
     pub fn role(&self) -> Role {
         self.role
     }
@@ -78,8 +78,8 @@ impl IamUser {
         self.phone.as_ref()
     }
 
-    pub fn status(&self) -> &UserStatus {
-        &self.user_status
+    pub fn status(&self) -> UserStatus {
+        self.user_status
     }
     
     pub fn register(

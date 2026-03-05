@@ -1,8 +1,10 @@
+use serde::Serialize;
+
 use shared::domain::{EventId, Timestamp, UserId, Username, Email, Phone, AggregateRootId, AggregateRoot, DomainEvent};
 use crate::domain::password_hash::PasswordHash;
 use crate::domain::role::Role;
 
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize)]
 pub struct UserRegistered {
     pub event_id: EventId,
     pub occured_on: Timestamp,
@@ -18,7 +20,7 @@ impl DomainEvent for UserRegistered {
     fn occured_on(&self) -> Timestamp { self.occured_on }
     fn event_type(&self) -> &'static str{ "iam.user_registered" }
     fn event_version(&self) -> &'static str{ "v1" }
-    fn doamin(&self) -> &'static str{ "IAM" }
+    fn domain(&self) -> &'static str{ "IAM" }
     fn service(&self) -> &'static str{ "IAM" }
 }
 

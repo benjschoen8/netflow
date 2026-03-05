@@ -10,7 +10,7 @@ impl InputPolicyChecker {
         Self
     }
 
-    pub fn validate(&self, policy: &InputPolicy, input: &str) {
-        policy.validate(input);
+    pub fn validate(&self, policy: &InputPolicy, input: &str) -> Result<(), IamError> {
+        policy.validate(input)
     }
 }

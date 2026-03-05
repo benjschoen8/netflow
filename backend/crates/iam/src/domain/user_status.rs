@@ -8,11 +8,13 @@ pub enum UserStatus {
     Deactivated,
 }
 
-impl UserStatus {
-    pub fn default() -> Self {
+impl Default for UserStatus {
+    fn default() -> Self {
         Self::Pending
     }
+}
 
+impl UserStatus {
     pub fn transition_to(&self, next: Self) -> Result<Self, IamError> {
         match (self, next) {
             (Self::Suspended, Self::Active) => Ok(next),

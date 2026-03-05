@@ -1,14 +1,13 @@
 use async_trait::async_trait;
-use sqlx::PgPool;
+use sqlx::postgres::PgPool;
+use sqlx::Error as SqlxError;
 use serde_json;
 
-use domain::iam::iam_user_store::IamUserStore;
-use domain::iam::iam_user::IamUser;
-use domain::shared::user_id::UserId;
-use domain::shared::shared_error::SharedError;
-use domain::correlation_id::CorrelationId;
-use domain::shared::aggregate_root::AggregateRoot;
-use crate::message::Message;
+use shared::domain::{ UserId, SharedError, CorrelationId, AggregateRoot, Message };
+use shared::application::RepoStore;
+use crate::domain::iam_user::IamUser;
+use crate::domain::iam_events::IamEvents;
+use crate::domain::iam_error::IamError;
 
 pub struct PostgresIamUserStore {
     pool: PgPool,
@@ -21,50 +20,43 @@ impl PostgresIamUserStore {
 }
 
 #[async_trait]
-impl IamUserStore for PostgresIamUserStore {
-    async fn save(&self, user: &mut IamUser, correlation_id: &CorrelationId) -> Result<(), SharedError> {
-        let mut tx = self.pool.begin().await.map_err(|e| SharedError::Database(e.to_string()))?;
-
-        sqlx::query!(
-            r#"
-            INSERT INTO users (id, email, password_hash)
-            VALUES ($1, $2, $3)
-            ON CONFLICT (id) DO UPDATE 
-            SET email = EXCLUDED.email, password_hash = EXCLUDED.password_hash
-            "#,
-            user.id().into_inner(),
-            user.email().as_str(),
-            user.password_hash().as_str()
+impl RepoStore<IamUser, IamEvents> for PostgresIamUserStore {
+    async fn save(
+        &self,
+        user: IamUser,
+        messages: &Vec<Message<IamEvents>>,
+    ) -> Result<(), SharedError> {
+        let mut tx = self.pool.begin().await?;
+        sqlx::query(
+            r#"INSERT INTO users (id, base_email, full_email, password_hash)
+               VALUES ($1, $2, $3, $4)
+               ON CONFLICT (id) DO UPDATE
+               SET email = EXCLUDED.email,
+                   password_hash = EXCLUDED.password_hash"#,
         )
+        .bind(user.user_id().to_string())
+        .bind(user.email().base_address())
+        .bind(user.email().full_address())
+        .bind(user.password_hash().to_string())
         .execute(&mut *tx)
-        .await
-        .map_err(|e| SharedError::Database(e.to_string()))?;
+        .await?;
 
-        let events = user.clear_events(); 
+        for message in messages {
+            let payload = serde_json::to_string(message.data())
+                .map_err(|e| SharedError::Serialization(e.to_string()))?;
 
-        for event in events {
-            let message = Message::new(event, correlation_id.clone());
-            
-            let payload = serde_json::to_string(&message).map_err(|_| {
-                SharedError::Serialization("Failed to serialize Outbox Message".into())
-            })?;
-
-            sqlx::query!(
-                r#"
-                INSERT INTO outbox_events (message_id, correlation_id, payload)
-                VALUES ($1, $2, $3)
-                "#,
-                message.message_id.into_inner(), 
-                correlation_id.as_str(),         
-                payload
+            sqlx::query(
+                r#"INSERT INTO outbox_events (message_id, correlation_id, payload)
+                   VALUES ($1, $2, $3)"#,
             )
+            .bind(message.message_id().to_string())
+            .bind(message.correlation_id().to_string())
+            .bind(payload)
             .execute(&mut *tx)
-            .await
-            .map_err(|e| SharedError::Database(e.to_string()))?;
+            .await?;
         }
 
-        tx.commit().await.map_err(|e| SharedError::Database(e.to_string()))?;
-
+        tx.commit().await?;
         Ok(())
     }
 }

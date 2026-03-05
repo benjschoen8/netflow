@@ -1,7 +1,16 @@
+use serde::Serialize;
+use std::fmt;
+
 use crate::domain::shared_error::SharedError;
 
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, PartialEq, Eq, Ord, PartialOrd, Serialize )]
 pub struct Phone(String);
+
+impl fmt::Display for Phone {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
 
 impl Phone {
     pub fn new(value: String) -> Result<Self, SharedError> {
@@ -14,11 +23,5 @@ impl Phone {
 
     pub fn value(&self) -> &str {
         &self.0
-    }
-}
-
-impl std::fmt::Display for Phone {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
     }
 }
