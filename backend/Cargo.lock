@@ -843,6 +843,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "ledger"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "chrono",
+ "enum_dispatch",
+ "rust_decimal",
+ "serde",
+ "shared",
+ "sqlx",
+ "thiserror",
+ "tokio",
+ "uuid",
+]
+
+[[package]]
 name = "libc"
 version = "0.2.180"
 source = "registry+https://github.com/rust-lang/crates.io-index"

@@ -17,7 +17,7 @@ pub struct UserRegistered {
 
 impl DomainEvent for UserRegistered {
     fn event_id(&self) -> EventId { self.event_id }
-    fn occured_on(&self) -> Timestamp { self.occured_on }
+    fn occurred_on(&self) -> Timestamp { self.occured_on }
     fn event_type(&self) -> &'static str{ "iam.user_registered" }
     fn event_version(&self) -> &'static str{ "v1" }
     fn domain(&self) -> &'static str{ "IAM" }

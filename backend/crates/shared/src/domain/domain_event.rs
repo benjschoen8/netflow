@@ -5,7 +5,7 @@ use crate::domain::timestamp::Timestamp;
 #[enum_dispatch]
 pub trait DomainEvent: Send + Sync {
     fn event_id(&self)-> EventId;
-    fn occured_on(&self)-> Timestamp;
+    fn occurred_on(&self)-> Timestamp;
     fn event_type(&self) -> &'static str;
     fn event_version(&self) -> &'static str;
     fn domain(&self) -> &'static str;

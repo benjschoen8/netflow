@@ -1,16 +1,32 @@
-use crate::domain::shared_error::SharedError;
+use std::fmt;
+use serde::{Serialize, Deserialize};
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+use shared::domain::SharedError;
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Bank(String);
+
+impl fmt::Display for Bank {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
 
 impl Bank {
     pub fn new(val: String) -> Result<Self, SharedError> {
-        if val.is_empty() {
+        let trimmed = val.trim().to_string();
+        if trimmed.is_empty() {
             return Err(SharedError::Empty("[Bank] cannot be empty"));
         }
-        if val.chars().any(|c| c.is_control()) {
-            return Err(SharedError::InvalidFormat("[Bank] contains illegal format (control characters)"));
+        if trimmed.chars().any(|c| c.is_control()) {
+            return Err(SharedError::InvalidFormat(
+                "[Bank] contains illegal format (control characters)"
+            ));
         }
-        Ok(Self(val))
+        Ok(Self(trimmed))
+    }
+
+    pub fn value(&self) -> &str {
+        &self.0
     }
 }

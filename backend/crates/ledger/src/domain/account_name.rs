@@ -1,6 +1,9 @@
-use shared::domain::shared_error::SharedError;
+use std::fmt;
+use serde::{Serialize, Deserialize};
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+use shared::domain::SharedError;
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct AccountName(String);
 
 impl fmt::Display for AccountName {
@@ -16,8 +19,14 @@ impl AccountName {
             return Err(SharedError::Empty("[AccountName] cannot be empty"));
         }
         if trimmed.chars().any(|c| c.is_control()) {
-            return Err(SharedError::InvalidFormat("[AccountName] contains illegal format (control characters)"));
+            return Err(SharedError::InvalidFormat(
+                "[AccountName] contains illegal format (control characters)"
+            ));
         }
         Ok(Self(trimmed))
+    }
+
+    pub fn value(&self) -> &str {
+        &self.0
     }
 }
