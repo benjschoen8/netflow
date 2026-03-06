@@ -2,9 +2,10 @@ use crate::domain::account_id::AccountId;
 use crate::domain::money::Money;
 use super::account::Account;
 use super::cash_account::CashAccount;
+use super::loan::Loan;
 use super::investment_account::InvestmentAccount;
 use super::credit_card::CreditCard;
-use super::liability_account::LiabilityAccount;
+use super::loan_account::LoanAccount;
 use super::physical_wallet::PhysicalWallet;
 use super::digital_wallet::DigitalWallet;
 
@@ -13,7 +14,7 @@ pub enum FinancialAccount {
     Cash(CashAccount),
     Investment(InvestmentAccount),
     CreditCard(CreditCard),
-    Liability(LiabilityAccount),
+    Loan(LoanAccount),
     PhysicalWallet(PhysicalWallet),
     DigitalWallet(DigitalWallet),
 }
@@ -24,7 +25,7 @@ impl FinancialAccount {
             Self::Cash(a)           => a.account_id(),
             Self::Investment(a)     => a.account_id(),
             Self::CreditCard(a)     => a.account_id(),
-            Self::Liability(a)      => a.account_id(),
+            Self::Loan(a)      => a.account_id(),
             Self::PhysicalWallet(a) => a.account_id(),
             Self::DigitalWallet(a)  => a.account_id(),
         }
@@ -35,7 +36,7 @@ impl FinancialAccount {
             Self::Cash(a)           => a.balance(),
             Self::Investment(a)     => a.balance(),
             Self::CreditCard(a)     => a.balance(),
-            Self::Liability(a)      => a.balance(),
+            Self::Loan(a)      => a.balance(),
             Self::PhysicalWallet(a) => a.balance(),
             Self::DigitalWallet(a)  => a.balance(),
         }
@@ -46,7 +47,7 @@ impl FinancialAccount {
             Self::Cash(a)           => a.is_asset(),
             Self::Investment(a)     => a.is_asset(),
             Self::CreditCard(a)     => a.is_asset(),
-            Self::Liability(a)      => a.is_asset(),
+            Self::Loan(a)      => a.is_asset(),
             Self::PhysicalWallet(a) => a.is_asset(),
             Self::DigitalWallet(a)  => a.is_asset(),
         }
@@ -57,7 +58,7 @@ impl FinancialAccount {
             Self::Cash(a)           => a.account_type(),
             Self::Investment(a)     => a.account_type(),
             Self::CreditCard(a)     => a.account_type(),
-            Self::Liability(a)      => a.account_type(),
+            Self::Loan(a)      => a.account_type(),
             Self::PhysicalWallet(a) => a.account_type(),
             Self::DigitalWallet(a)  => a.account_type(),
         }
@@ -66,7 +67,7 @@ impl FinancialAccount {
     pub fn is_overdue(&self) -> bool {
         match self {
             Self::CreditCard(c) => c.is_overdue(),
-            Self::Liability(l)  => l.liability().is_overdue(),
+            Self::Loan(l)  => l.loan().is_overdue(),
             _ => false,
         }
     }
@@ -85,8 +86,8 @@ impl FinancialAccount {
         match self { Self::CreditCard(a) => Some(a), _ => None }
     }
 
-    pub fn as_liability(&self) -> Option<&LiabilityAccount> {
-        match self { Self::Liability(a) => Some(a), _ => None }
+    pub fn as_loan(&self) -> Option<&LoanAccount> {
+        match self { Self::Loan(a) => Some(a), _ => None }
     }
 
     pub fn as_physical_wallet(&self) -> Option<&PhysicalWallet> {
@@ -109,8 +110,8 @@ impl FinancialAccount {
         match self { Self::CreditCard(a) => Some(a), _ => None }
     }
 
-    pub fn as_liability_mut(&mut self) -> Option<&mut LiabilityAccount> {
-        match self { Self::Liability(a) => Some(a), _ => None }
+    pub fn as_loan_mut(&mut self) -> Option<&mut LoanAccount> {
+        match self { Self::Loan(a) => Some(a), _ => None }
     }
 
     pub fn as_physical_wallet_mut(&mut self) -> Option<&mut PhysicalWallet> {
@@ -136,8 +137,8 @@ impl From<CreditCard> for FinancialAccount {
     fn from(a: CreditCard) -> Self { Self::CreditCard(a) }
 }
 
-impl From<LiabilityAccount> for FinancialAccount {
-    fn from(a: LiabilityAccount) -> Self { Self::Liability(a) }
+impl From<LoanAccount> for FinancialAccount {
+    fn from(a: LoanAccount) -> Self { Self::Loan(a) }
 }
 
 impl From<PhysicalWallet> for FinancialAccount {

@@ -6,11 +6,15 @@ use crate::domain::currency::Currency;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Money {
-    pub amount: Decimal,
-    pub currency: Currency,
+    amount: Decimal,
+    currency: Currency,
 }
 
 impl Money {
+    pub fn amount(&self) -> Decimal { &self.decimal }
+
+    pub fn currency(&self) -> Currency { &self.currency }
+
     pub fn new(amount: Decimal, currency: Currency) -> Result<Self, SharedError> {
         if amount.is_sign_negative() {
             return Err(SharedError::InvalidFormat(

@@ -45,4 +45,3 @@ fn days_in_month(year: i32, month: u32) -> u32 {
         .expect("valid predecessor")
         .day()
 }
-CardType

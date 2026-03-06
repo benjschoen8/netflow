@@ -1,7 +1,7 @@
 use std::fmt;
 use serde::{Serialize, Deserialize};
 
-use shared::domain::shared_error::SharedError;
+use shared::domain::SharedError;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct CardLastFour(String);

@@ -2,9 +2,12 @@ use crate::domain::account_id::AccountId;
 use crate::domain::account_name::AccountName;
 use crate::domain::money::Money;
 use crate::domain::liability::Liability;
+use crate::domain::loan::Loan;
 use crate::domain::monthly_day::MonthlyDay;
 use super::account::Account;
-use super::card_types::{CardLastFour, CardNetwork, ExpirationDate};
+use super::card_last_four::CardLastFour;
+use super::card_network::CardNetwork;
+use super::expiration_date::ExpirationDate;
 use shared::domain::SharedError;
 
 #[derive(Debug, Clone, PartialEq)]

@@ -24,7 +24,7 @@ impl Investment {
     ) -> Result<Self, SharedError> {
         if quantity.is_sign_negative() {
             return Err(SharedError::InvalidFormat(
-                "[Investment] quantity cannot be negative" // fixed: was [Security]
+                "[Investment] quantity cannot be negative"
             ));
         }
         Ok(Self { ticker, investment_type, quantity, unit_price })

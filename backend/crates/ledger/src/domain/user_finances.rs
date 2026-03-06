@@ -1,16 +1,17 @@
 use rust_decimal::Decimal;
 
 use shared::domain::UserId;
-use crate::domain::account_id::AccountId;
-use crate::domain::currency::Currency;
-use crate::domain::money::Money;
-use crate::domain::signed_money::SignedMoney;
 use shared::domain::SharedError;
+use super::account_id::AccountId;
+use super::currency::Currency;
+use super::money::Money;
+use super::loan::Loan;
+use super::signed_money::SignedMoney;
 use super::financial_account::FinancialAccount;
 use super::cash_account::CashAccount;
 use super::investment_account::InvestmentAccount;
 use super::credit_card::CreditCard;
-use super::liability_account::LiabilityAccount;
+use super::loan_account::LoanAccount;
 use super::physical_wallet::PhysicalWallet;
 use super::digital_wallet::DigitalWallet;
 
@@ -32,9 +33,6 @@ impl UserFinances {
 
     // ── Account management ────────────────────────────────────────────────────
 
-    /// Add any account type — accepts concrete types directly via From impls:
-    /// finances.add_account(my_physical_wallet)?
-    /// finances.add_account(my_credit_card)?
     pub fn add_account(
         &mut self,
         account: impl Into<FinancialAccount>,
@@ -90,19 +88,14 @@ impl UserFinances {
         self.accounts.iter().filter_map(|a| a.as_credit_card())
     }
 
-    pub fn liability_accounts(&self) -> impl Iterator<Item = &LiabilityAccount> {
-        self.accounts.iter().filter_map(|a| a.as_liability())
+    pub fn loan_accounts(&self) -> impl Iterator<Item = &LoanAccount> {
+        self.accounts.iter().filter_map(|a| a.as_loan())
     }
 
     pub fn overdue_accounts(&self) -> impl Iterator<Item = &FinancialAccount> {
         self.accounts.iter().filter(|a| a.is_overdue())
     }
 
-    // ── Net worth calculations ────────────────────────────────────────────────
-    // Per-currency — pass the currency you want to calculate in.
-    // Use currencies_held() to know which currencies exist.
-
-    /// Total value of all assets in a given currency
     pub fn total_assets(&self, currency: Currency) -> Result<Money, SharedError> {
         self.accounts
             .iter()
@@ -113,19 +106,16 @@ impl UserFinances {
             )
     }
 
-    /// Total value of all liabilities in a given currency
-    pub fn total_liabilities(&self, currency: Currency) -> Result<Money, SharedError> {
+    pub fn total_liabilities(&self, currency: Currency) -> Result<Loan, SharedError> {
         self.accounts
             .iter()
             .filter(|a| !a.is_asset() && a.balance().currency == currency)
             .try_fold(
-                Money::new(Decimal::ZERO, currency)?,
+                Loan::new(Decimal::ZERO, currency)?,
                 |acc, a| acc.add(a.balance()),
             )
     }
 
-    /// Net worth = assets - liabilities for a given currency.
-    /// Returns SignedMoney because net worth can be negative.
     pub fn net_worth(&self, currency: Currency) -> Result<SignedMoney, SharedError> {
         let assets = self.total_assets(currency)?;
         let liabilities = self.total_liabilities(currency)?;
@@ -137,7 +127,6 @@ impl UserFinances {
         Ok(SignedMoney::new(amount, currency))
     }
 
-    /// All distinct currencies held across every account
     pub fn currencies_held(&self) -> Vec<Currency> {
         let mut currencies: Vec<Currency> = Vec::new();
         for account in &self.accounts {
@@ -149,7 +138,6 @@ impl UserFinances {
         currencies
     }
 
-    /// Net worth across every currency held — one SignedMoney per currency
     pub fn net_worth_all_currencies(&self) -> Result<Vec<SignedMoney>, SharedError> {
         self.currencies_held()
             .into_iter()
