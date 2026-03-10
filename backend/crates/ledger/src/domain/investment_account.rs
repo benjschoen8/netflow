@@ -1,12 +1,16 @@
+use rust_decimal::Decimal;
+
+use shared::domain::SharedError;
 use crate::domain::account_id::AccountId;
 use crate::domain::account_name::AccountName;
 use crate::domain::account_number::AccountNumber;
 use crate::domain::bank::Bank;
+use crate::domain::currency::Currency;
 use crate::domain::money::Money;
-use shared::domain::SharedError;
-use super::account::Account;
-use super::investment::Investment;
-use super::ticker::Ticker;
+use crate::domain::financial_entry::FinancialEntry;
+use crate::domain::asset_account::AssetAccount;
+use crate::domain::investment::Investment;
+use crate::domain::ticker::Ticker;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct InvestmentAccount {
@@ -14,9 +18,7 @@ pub struct InvestmentAccount {
     account_name: AccountName,
     account_number: AccountNumber,
     bank: Bank,
-
     cash_balance: Money,
-
     holdings: Vec<Investment>,
 }
 
@@ -28,14 +30,7 @@ impl InvestmentAccount {
         bank: Bank,
         cash_balance: Money,
     ) -> Self {
-        Self {
-            account_id,
-            account_name,
-            account_number,
-            bank,
-            cash_balance,
-            holdings: Vec::new(),
-        }
+        Self { account_id, account_name, account_number, bank, cash_balance, holdings: Vec::new() }
     }
 
     pub fn bank(&self) -> &Bank { &self.bank }
@@ -48,10 +43,7 @@ impl InvestmentAccount {
     }
 
     pub fn add_holding(&mut self, investment: Investment) -> Result<(), SharedError> {
-        if let Some(existing) = self.holdings
-            .iter_mut()
-            .find(|h| h.ticker() == investment.ticker())
-        {
+        if let Some(existing) = self.holdings.iter_mut().find(|h| h.ticker() == investment.ticker()) {
             existing.add_quantity(investment.quantity())?;
         } else {
             self.holdings.push(investment);
@@ -63,32 +55,16 @@ impl InvestmentAccount {
         let pos = self.holdings
             .iter()
             .position(|h| h.ticker() == ticker)
-            .ok_or(SharedError::Operational(
-                "[InvestmentAccount] holding not found"
-            ))?;
+            .ok_or(SharedError::Operational("[InvestmentAccount] holding not found"))?;
         self.holdings.remove(pos);
         Ok(())
     }
 
-    pub fn deposit_cash(&mut self, amount: Money) -> Result<(), SharedError> {
-        self.cash_balance = self.cash_balance.add(&amount)?;
-        Ok(())
-    }
-
-    pub fn withdraw_cash(&mut self, amount: Money) -> Result<(), SharedError> {
-        self.cash_balance = self.cash_balance.sub(&amount)?;
-        Ok(())
-    }
-
     pub fn holdings_value(&self) -> Result<Money, SharedError> {
-        let mut total = Money::new(
-            rust_decimal::Decimal::ZERO,
-            self.cash_balance.currency,
-        )?;
-        for holding in &self.holdings {
-            total = total.add(&holding.market_value()?)?;
-        }
-        Ok(total)
+        self.holdings.iter().try_fold(
+            Money::zero(self.cash_balance.currency()),
+            |acc, h| acc.add(&h.market_value()?),
+        )
     }
 
     pub fn total_value(&self) -> Result<Money, SharedError> {
@@ -96,12 +72,25 @@ impl InvestmentAccount {
     }
 }
 
-impl Account for InvestmentAccount {
+impl FinancialEntry for InvestmentAccount {
     fn account_id(&self) -> AccountId { self.account_id }
     fn account_name(&self) -> &AccountName { &self.account_name }
+    fn account_type(&self) -> &'static str { "investment" }
+    fn currency(&self) -> Currency { self.cash_balance.currency() }
+}
 
+/// AssetAccount balance returns cash balance only.
+/// Use `total_value()` for cash + holdings.
+impl AssetAccount for InvestmentAccount {
     fn balance(&self) -> &Money { &self.cash_balance }
 
-    fn account_type(&self) -> &'static str { "investment" }
-    fn is_asset(&self) -> bool { true }
+    fn deposit(&mut self, amount: &Money) -> Result<(), SharedError> {
+        self.cash_balance = self.cash_balance.add(amount)?;
+        Ok(())
+    }
+
+    fn withdraw(&mut self, amount: &Money) -> Result<(), SharedError> {
+        self.cash_balance = self.cash_balance.sub(amount)?;
+        Ok(())
+    }
 }

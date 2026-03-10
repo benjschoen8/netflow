@@ -1,10 +1,12 @@
+use shared::domain::SharedError;
 use crate::domain::account_id::AccountId;
 use crate::domain::account_name::AccountName;
 use crate::domain::account_number::AccountNumber;
 use crate::domain::bank::Bank;
+use crate::domain::currency::Currency;
 use crate::domain::money::Money;
-use super::account::Account;
-use shared::domain::SharedError;
+use crate::domain::financial_entry::FinancialEntry;
+use crate::domain::asset_account::AssetAccount;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct CashAccount {
@@ -28,22 +30,25 @@ impl CashAccount {
 
     pub fn account_number(&self) -> &AccountNumber { &self.account_number }
     pub fn bank(&self) -> &Bank { &self.bank }
-
-    pub fn deposit(&mut self, amount: Money) -> Result<&Money, SharedError> {
-        self.balance = self.balance.add(&amount)?;
-        Ok(&self.balance)
-    }
-
-    pub fn withdraw(&mut self, amount: Money) -> Result<&Money, SharedError> {
-        self.balance = self.balance.sub(&amount)?;
-        Ok(&self.balance)
-    }
 }
 
-impl Account for CashAccount {
+impl FinancialEntry for CashAccount {
     fn account_id(&self) -> AccountId { self.account_id }
     fn account_name(&self) -> &AccountName { &self.account_name }
-    fn balance(&self) -> &Money { &self.balance }
     fn account_type(&self) -> &'static str { "cash" }
-    fn is_asset(&self) -> bool { true }
+    fn currency(&self) -> Currency { self.balance.currency() }
+}
+
+impl AssetAccount for CashAccount {
+    fn balance(&self) -> &Money { &self.balance }
+
+    fn deposit(&mut self, amount: &Money) -> Result<(), SharedError> {
+        self.balance = self.balance.add(amount)?;
+        Ok(())
+    }
+
+    fn withdraw(&mut self, amount: &Money) -> Result<(), SharedError> {
+        self.balance = self.balance.sub(amount)?;
+        Ok(())
+    }
 }

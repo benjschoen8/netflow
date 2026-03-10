@@ -1,9 +1,11 @@
+use shared::domain::SharedError;
 use crate::domain::account_id::AccountId;
 use crate::domain::account_name::AccountName;
+use crate::domain::currency::Currency;
 use crate::domain::money::Money;
+use crate::domain::financial_entry::FinancialEntry;
+use crate::domain::asset_account::AssetAccount;
 use crate::domain::digital_wallet_provider::DigitalWalletProvider;
-use super::account::Account;
-use shared::domain::SharedError;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ProviderAccountId(String);
@@ -12,9 +14,7 @@ impl ProviderAccountId {
     pub fn new(val: String) -> Result<Self, SharedError> {
         let trimmed = val.trim().to_string();
         if trimmed.is_empty() {
-            return Err(SharedError::Empty(
-                "[ProviderAccountId] cannot be empty"
-            ));
+            return Err(SharedError::Empty("[ProviderAccountId] cannot be empty"));
         }
         Ok(Self(trimmed))
     }
@@ -22,20 +22,12 @@ impl ProviderAccountId {
     pub fn value(&self) -> &str { &self.0 }
 }
 
-/// A digital wallet account — LINE Pay, Apple Pay, JKO Pay, etc.
-/// One currency per wallet — user can have multiple digital wallets.
 #[derive(Debug, Clone, PartialEq)]
 pub struct DigitalWallet {
     account_id: AccountId,
     account_name: AccountName,
-
-    /// Which platform this wallet belongs to
     provider: DigitalWalletProvider,
-
-    /// The account identifier on the provider's system
     provider_account_id: ProviderAccountId,
-
-    /// Stored value balance
     balance: Money,
 }
 
@@ -52,24 +44,25 @@ impl DigitalWallet {
 
     pub fn provider(&self) -> &DigitalWalletProvider { &self.provider }
     pub fn provider_account_id(&self) -> &ProviderAccountId { &self.provider_account_id }
-
-    /// Top up the wallet balance
-    pub fn top_up(&mut self, amount: Money) -> Result<(), SharedError> {
-        self.balance = self.balance.add(&amount)?;
-        Ok(())
-    }
-
-    /// Spend from the wallet balance
-    pub fn spend(&mut self, amount: Money) -> Result<(), SharedError> {
-        self.balance = self.balance.sub(&amount)?;
-        Ok(())
-    }
 }
 
-impl Account for DigitalWallet {
+impl FinancialEntry for DigitalWallet {
     fn account_id(&self) -> AccountId { self.account_id }
     fn account_name(&self) -> &AccountName { &self.account_name }
-    fn balance(&self) -> &Money { &self.balance }
     fn account_type(&self) -> &'static str { "digital_wallet" }
-    fn is_asset(&self) -> bool { true }
+    fn currency(&self) -> Currency { self.balance.currency() }
+}
+
+impl AssetAccount for DigitalWallet {
+    fn balance(&self) -> &Money { &self.balance }
+
+    fn deposit(&mut self, amount: &Money) -> Result<(), SharedError> {
+        self.balance = self.balance.add(amount)?;
+        Ok(())
+    }
+
+    fn withdraw(&mut self, amount: &Money) -> Result<(), SharedError> {
+        self.balance = self.balance.sub(amount)?;
+        Ok(())
+    }
 }

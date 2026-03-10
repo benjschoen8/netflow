@@ -2,7 +2,6 @@ use rust_decimal::Decimal;
 use serde::{Serialize, Deserialize};
 
 use shared::domain::SharedError;
-use crate::domain::money::Money;
 use crate::domain::liability::Liability;
 use crate::domain::monthly_day::MonthlyDay;
 
@@ -32,15 +31,22 @@ impl Loan {
         interest_rate: Option<Decimal>,
         due_date: Option<MonthlyDay>,
         maturity_date: Option<chrono::NaiveDate>,
-        minimum_payment: Option<Money>,
+        minimum_payment: Option<Liability>,
     ) -> Result<Self, SharedError> {
         if creditor.trim().is_empty() {
-            return Err(SharedError::Empty("[Liability] creditor cannot be empty"));
+            return Err(SharedError::Empty("[Loan] creditor cannot be empty"));
         }
         if let Some(rate) = interest_rate {
             if rate.is_sign_negative() {
                 return Err(SharedError::InvalidFormat(
-                    "[Liability] interest rate cannot be negative"
+                    "[Loan] interest rate cannot be negative"
+                ));
+            }
+        }
+        if let Some(ref min) = minimum_payment {
+            if min.currency() != principal.currency() {
+                return Err(SharedError::Operational(
+                    "[Loan] minimum payment currency must match principal"
                 ));
             }
         }
@@ -63,42 +69,37 @@ impl Loan {
     pub fn interest_rate(&self) -> Option<Decimal> { self.interest_rate }
     pub fn due_date(&self) -> Option<MonthlyDay> { self.due_date }
     pub fn maturity_date(&self) -> Option<chrono::NaiveDate> { self.maturity_date }
-    pub fn minimum_payment(&self) -> Option<&Money> { self.minimum_payment.as_ref() }
+    pub fn minimum_payment(&self) -> Option<&Liability> { self.minimum_payment.as_ref() }
     pub fn is_overdue(&self) -> bool { self.overdue }
-    pub fn is_settled(&self) -> bool { self.outstanding.amount.is_zero() }
+    pub fn is_settled(&self) -> bool { self.outstanding.is_zero() }
 
     pub fn mark_overdue(&mut self) { self.overdue = true; }
     pub fn mark_current(&mut self) { self.overdue = false; }
 
-    pub fn make_payment(&self, payment: &Money) -> Result<Self, SharedError> {
-        if payment.amount > self.outstanding.amount {
-            return Err(SharedError::Operational(
-                "[Liability] payment exceeds outstanding balance"
-            ));
-        }
+    /// Returns a new Loan with outstanding reduced by payment.
+    /// Err if payment exceeds outstanding.
+    pub fn apply_payment(&self, payment: &Liability) -> Result<Self, SharedError> {
         Ok(Self {
             outstanding: self.outstanding.sub(payment)?,
             ..self.clone()
         })
     }
 
-    pub fn accrue_interest(&self) -> Result<Self, SharedError> {
+    /// Returns a new Loan with one month of interest applied.
+    /// No-op if no interest rate is set.
+    pub fn apply_interest(&self) -> Result<Self, SharedError> {
         let Some(rate) = self.interest_rate else {
             return Ok(self.clone());
         };
         let monthly_rate = rate / Decimal::from(1200);
-        let interest = self.outstanding.amount
+        let interest = self.outstanding.amount()
             .checked_mul(monthly_rate)
-            .ok_or(SharedError::Operational(
-                "[Liability] overflow accruing interest"
-            ))?;
-        let new_amount = self.outstanding.amount
+            .ok_or(SharedError::Operational("[Loan] overflow accruing interest"))?;
+        let new_amount = self.outstanding.amount()
             .checked_add(interest)
-            .ok_or(SharedError::Operational(
-                "[Liability] overflow adding interest to outstanding"
-            ))?;
+            .ok_or(SharedError::Operational("[Loan] overflow adding interest"))?;
         Ok(Self {
-            outstanding: Money::new(new_amount, self.outstanding.currency)?,
+            outstanding: Liability::new(new_amount, self.outstanding.currency())?,
             ..self.clone()
         })
     }

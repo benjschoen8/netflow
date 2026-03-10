@@ -15,7 +15,7 @@ impl IntegrationEnvelopeFactory {
     pub fn wrap<T: DomainEvent>(&self, event: T, correlation_id: CorrelationId) -> EventEnvelope<T> {
         EventEnvelope {
             metadata: IntegrationEventMetadata {
-                id: EventId::new(),
+                id: &EventId::new(),
                 version: event.event_version(),
                 timestamp: Utc::now(),
                 domain: self.domain_name.clone(),

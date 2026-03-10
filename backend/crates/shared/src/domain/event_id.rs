@@ -7,7 +7,7 @@ use crate::domain::shared_error::SharedError;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 pub struct EventId(Uuid);
 
-impl fmt::Display for EventId {
+impl fmt::Display for &EventId {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.0)
     }

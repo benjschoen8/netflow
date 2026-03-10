@@ -4,8 +4,7 @@ use serde::{Serialize, Deserialize};
 use shared::domain::SharedError;
 use crate::domain::money::Money;
 use crate::domain::ticker::Ticker;
-use super::investment_type::InvestmentType;
-
+use crate::domain::investment_type::InvestmentType;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Investment {
@@ -31,17 +30,17 @@ impl Investment {
     }
 
     pub fn ticker(&self) -> &Ticker { &self.ticker }
-    pub fn investment_type(&self) -> &InvestmentType { &self.investment_type } // fixed: was security_type → SecurityType
+    pub fn investment_type(&self) -> &InvestmentType { &self.investment_type }
     pub fn quantity(&self) -> Decimal { self.quantity }
     pub fn unit_price(&self) -> &Money { &self.unit_price }
 
     pub fn market_value(&self) -> Result<Money, SharedError> {
-        let total = self.unit_price.amount
+        let total = self.unit_price.amount()
             .checked_mul(self.quantity)
             .ok_or(SharedError::Operational(
-                "[Investment] arithmetic overflow calculating market value" // fixed
+                "[Investment] arithmetic overflow calculating market value"
             ))?;
-        Money::new(total, self.unit_price.currency)
+        Money::new(total, self.unit_price.currency())
     }
 
     pub fn update_price(&mut self, new_price: Money) {
@@ -51,28 +50,24 @@ impl Investment {
     pub fn add_quantity(&mut self, amount: Decimal) -> Result<(), SharedError> {
         if amount.is_sign_negative() {
             return Err(SharedError::InvalidFormat(
-                "[Investment] cannot add negative quantity" // fixed
+                "[Investment] cannot add negative quantity"
             ));
         }
         self.quantity = self.quantity
             .checked_add(amount)
-            .ok_or(SharedError::Operational(
-                "[Investment] arithmetic overflow adding quantity" // fixed
-            ))?;
+            .ok_or(SharedError::Operational("[Investment] overflow adding quantity"))?;
         Ok(())
     }
 
     pub fn remove_quantity(&mut self, amount: Decimal) -> Result<(), SharedError> {
         if amount > self.quantity {
             return Err(SharedError::Operational(
-                "[Investment] cannot remove more than held quantity" // fixed
+                "[Investment] cannot remove more than held quantity"
             ));
         }
         self.quantity = self.quantity
             .checked_sub(amount)
-            .ok_or(SharedError::Operational(
-                "[Investment] arithmetic underflow removing quantity" // fixed
-            ))?;
+            .ok_or(SharedError::Operational("[Investment] underflow removing quantity"))?;
         Ok(())
     }
 }
