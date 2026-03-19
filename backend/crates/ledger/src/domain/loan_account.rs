@@ -43,7 +43,7 @@ impl LoanAccount {
     }
 
     pub fn bank(&self) -> &Bank { &self.bank }
-    pub fn account_number(&self) -> &AccountNumber { &self.account_number }
+    pub fn account_number(&self) -> Option<&AccountNumber> { self.account_number.as_ref() }
     pub fn loan(&self) -> &Loan { &self.loan }
 }
 

@@ -60,6 +60,22 @@ impl InvestmentAccount {
         Ok(())
     }
 
+    /// Update the unit price of an existing holding.
+    pub fn update_holding_price(
+        &mut self,
+        ticker: &Ticker,
+        new_price: Money,
+    ) -> Result<(), SharedError> {
+        let holding = self.holdings
+            .iter_mut()
+            .find(|h| h.ticker() == ticker)
+            .ok_or(SharedError::Operational(
+                "[InvestmentAccount] holding not found — cannot update price",
+            ))?;
+        holding.update_price(new_price);
+        Ok(())
+    }
+
     pub fn holdings_value(&self) -> Result<Money, SharedError> {
         self.holdings.iter().try_fold(
             Money::zero(self.cash_balance.currency()),
@@ -79,8 +95,8 @@ impl FinancialEntry for InvestmentAccount {
     fn currency(&self) -> Currency { self.cash_balance.currency() }
 }
 
-/// AssetAccount balance returns cash balance only.
-/// Use `total_value()` for cash + holdings.
+/// `AssetAccount::balance` returns cash balance only.
+/// Use `total_value()` for cash + holdings combined.
 impl AssetAccount for InvestmentAccount {
     fn balance(&self) -> &Money { &self.cash_balance }
 

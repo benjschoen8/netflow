@@ -7,6 +7,7 @@ use crate::domain::balance::Balance;
 use crate::domain::currency::Currency;
 use crate::domain::liability::Liability;
 use crate::domain::money::Money;
+use crate::domain::financial_entry::FinancialEntry;
 use crate::domain::financial_account::FinancialAccount;
 use crate::domain::cash_account::CashAccount;
 use crate::domain::investment_account::InvestmentAccount;
@@ -16,7 +17,8 @@ use crate::domain::physical_wallet::PhysicalWallet;
 use crate::domain::digital_wallet::DigitalWallet;
 use crate::domain::investment::Investment;
 use crate::domain::ticker::Ticker;
-use crate::domain::events::ledger_events::LedgerEvent;
+
+use crate::domain::ledger_events::LedgerEvent;
 use crate::domain::events::user_finances_created::UserFinancesCreated;
 use crate::domain::events::account_removed::AccountRemoved;
 use crate::domain::events::cash_account_opened::CashAccountOpened;
@@ -38,6 +40,7 @@ use crate::domain::events::credit_card_charged::CreditCardCharged;
 use crate::domain::events::statement_closed::StatementClosed;
 use crate::domain::events::holding_added::HoldingAdded;
 use crate::domain::events::holding_removed::HoldingRemoved;
+use crate::domain::events::holding_price_updated::HoldingPriceUpdated;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct UserFinances {
@@ -63,17 +66,18 @@ impl AggregateRoot for UserFinances {
 }
 
 impl UserFinances {
-    pub fn new() -> Self {
-        let owner_id = UserId::create();
+    /// Create a brand-new aggregate for a specific user.
+    pub fn new(owner_id: UserId) -> Self {
         let mut user = Self {
             owner_id,
             accounts: Vec::new(),
             domain_events: Vec::new(),
         };
-        user.record_event(UserFinancesCreated { user_id: owner_id }.into());
+        user.record_event(UserFinancesCreated::new(owner_id).into());
         user
     }
 
+    /// Restore an existing aggregate from persistence (no event emitted).
     pub fn restore(owner_id: UserId, accounts: Vec<FinancialAccount>) -> Self {
         Self { owner_id, accounts, domain_events: Vec::new() }
     }
@@ -83,80 +87,80 @@ impl UserFinances {
     pub fn owner_id(&self) -> UserId { self.owner_id }
     pub fn accounts(&self) -> &[FinancialAccount] { &self.accounts }
 
-    // ── Account management ────────────────────────────────────────────────────
+    // ── Account lifecycle ─────────────────────────────────────────────────────
 
     pub fn add_cash_account(&mut self, account: CashAccount) -> Result<(), SharedError> {
         self.ensure_unique(account.account_id())?;
-        self.record_event(CashAccountOpened {
-            user_id: self.owner_id,
-            account_id: account.account_id(),
-            account_name: account.account_name().value().to_string(),
-            currency: account.currency(),
-        }.into());
+        self.record_event(CashAccountOpened::new(
+            self.owner_id,
+            account.account_id(),
+            account.account_name().value().to_string(),
+            account.currency(),
+        ).into());
         self.accounts.push(account.into());
         Ok(())
     }
 
     pub fn add_physical_wallet(&mut self, account: PhysicalWallet) -> Result<(), SharedError> {
         self.ensure_unique(account.account_id())?;
-        self.record_event(PhysicalWalletAdded {
-            user_id: self.owner_id,
-            account_id: account.account_id(),
-            account_name: account.account_name().value().to_string(),
-            currency: account.currency(),
-        }.into());
+        self.record_event(PhysicalWalletAdded::new(
+            self.owner_id,
+            account.account_id(),
+            account.account_name().value().to_string(),
+            account.currency(),
+        ).into());
         self.accounts.push(account.into());
         Ok(())
     }
 
     pub fn add_digital_wallet(&mut self, account: DigitalWallet) -> Result<(), SharedError> {
         self.ensure_unique(account.account_id())?;
-        self.record_event(DigitalWalletAdded {
-            user_id: self.owner_id,
-            account_id: account.account_id(),
-            account_name: account.account_name().value().to_string(),
-            provider: account.provider().clone(),
-            currency: account.currency(),
-        }.into());
+        self.record_event(DigitalWalletAdded::new(
+            self.owner_id,
+            account.account_id(),
+            account.account_name().value().to_string(),
+            account.provider().clone(),
+            account.currency(),
+        ).into());
         self.accounts.push(account.into());
         Ok(())
     }
 
     pub fn add_investment_account(&mut self, account: InvestmentAccount) -> Result<(), SharedError> {
         self.ensure_unique(account.account_id())?;
-        self.record_event(InvestmentAccountOpened {
-            user_id: self.owner_id,
-            account_id: account.account_id(),
-            account_name: account.account_name().value().to_string(),
-            currency: account.currency(),
-        }.into());
+        self.record_event(InvestmentAccountOpened::new(
+            self.owner_id,
+            account.account_id(),
+            account.account_name().value().to_string(),
+            account.currency(),
+        ).into());
         self.accounts.push(account.into());
         Ok(())
     }
 
     pub fn add_credit_card(&mut self, account: CreditCard) -> Result<(), SharedError> {
         self.ensure_unique(account.account_id())?;
-        self.record_event(CreditCardAdded {
-            user_id: self.owner_id,
-            account_id: account.account_id(),
-            account_name: account.account_name().value().to_string(),
-            network: account.network().clone(),
-            currency: account.currency(),
-            credit_limit: account.credit_limit().clone(),
-        }.into());
+        self.record_event(CreditCardAdded::new(
+            self.owner_id,
+            account.account_id(),
+            account.account_name().value().to_string(),
+            account.network().clone(),
+            account.currency(),
+            account.credit_limit().clone(),
+        ).into());
         self.accounts.push(account.into());
         Ok(())
     }
 
     pub fn add_loan_account(&mut self, account: LoanAccount) -> Result<(), SharedError> {
         self.ensure_unique(account.account_id())?;
-        self.record_event(LoanAccountOpened {
-            user_id: self.owner_id,
-            account_id: account.account_id(),
-            account_name: account.account_name().value().to_string(),
-            principal: account.loan().principal().clone(),
-            creditor: account.loan().creditor().to_string(),
-        }.into());
+        self.record_event(LoanAccountOpened::new(
+            self.owner_id,
+            account.account_id(),
+            account.account_name().value().to_string(),
+            account.loan().principal().clone(),
+            account.loan().creditor().to_string(),
+        ).into());
         self.accounts.push(account.into());
         Ok(())
     }
@@ -165,11 +169,11 @@ impl UserFinances {
         let idx = self.find_index(id)?;
         let account_type = self.accounts[idx].account_type();
         self.accounts.remove(idx);
-        self.record_event(AccountRemoved {
-            user_id: self.owner_id,
-            account_id: id,
+        self.record_event(AccountRemoved::new(
+            self.owner_id,
+            id,
             account_type,
-        }.into());
+        ).into());
         Ok(())
     }
 
@@ -178,22 +182,22 @@ impl UserFinances {
     pub fn deposit(&mut self, account_id: AccountId, amount: &Money) -> Result<(), SharedError> {
         let idx = self.find_index(account_id)?;
         self.accounts[idx].deposit(amount)?;
-        self.record_event(FundsDeposited {
-            user_id: self.owner_id,
+        self.record_event(FundsDeposited::new(
+            self.owner_id,
             account_id,
-            amount: amount.clone(),
-        }.into());
+            amount.clone(),
+        ).into());
         Ok(())
     }
 
     pub fn withdraw(&mut self, account_id: AccountId, amount: &Money) -> Result<(), SharedError> {
         let idx = self.find_index(account_id)?;
         self.accounts[idx].withdraw(amount)?;
-        self.record_event(FundsWithdrawn {
-            user_id: self.owner_id,
+        self.record_event(FundsWithdrawn::new(
+            self.owner_id,
             account_id,
-            amount: amount.clone(),
-        }.into());
+            amount.clone(),
+        ).into());
         Ok(())
     }
 
@@ -205,58 +209,51 @@ impl UserFinances {
         debt_id: AccountId,
         amount: &Liability,
     ) -> Result<(), SharedError> {
+        let payment_as_money = Money::new(amount.amount(), amount.currency())?;
+
+        {
+            let from = &self.accounts[self.find_index(from_id)?];
+            let balance = from.asset_balance()?;
+            balance.sub(&payment_as_money)?;
+        }
+        {
+            let debt = &self.accounts[self.find_index(debt_id)?];
+            let outstanding = debt.outstanding()?;
+            outstanding.sub(amount)?;
+        }
+
         let from_idx = self.find_index(from_id)?;
+        self.accounts[from_idx].withdraw(&payment_as_money)?;
+
         let debt_idx = self.find_index(debt_id)?;
-
-        // dry run — validate both sides using read-only arithmetic, no state changed
-        let payment_money = Money::new(amount.amount(), amount.currency())?;
-        self.accounts[from_idx].balance()?.sub(&payment_money)?;
-        self.accounts[debt_idx].outstanding()?.sub(amount)?;
-
-        // both valid — now mutate one at a time, borrow dropped each line
-        self.accounts[from_idx].withdraw(&payment_money)?;
         self.accounts[debt_idx].make_payment(amount)?;
 
-        // read outcome — borrow dropped before record_event re-borrows self
         let minimum_met = self.accounts[debt_idx].minimum_payment_paid();
         let is_settled  = self.accounts[debt_idx].is_paid();
 
-        self.record_event(PaymentMade {
-            user_id: self.owner_id,
-            from_account_id: from_id,
-            debt_account_id: debt_id,
-            amount: amount.clone(),
-        }.into());
+        self.record_event(PaymentMade::new(
+            self.owner_id, from_id, debt_id, amount.clone(),
+        ).into());
         if minimum_met {
-            self.record_event(MinimumPaymentMet {
-                user_id: self.owner_id,
-                account_id: debt_id,
-            }.into());
+            self.record_event(MinimumPaymentMet::new(self.owner_id, debt_id).into());
         }
         if is_settled {
-            self.record_event(DebtSettled {
-                user_id: self.owner_id,
-                account_id: debt_id,
-            }.into());
+            self.record_event(DebtSettled::new(self.owner_id, debt_id).into());
         }
         Ok(())
     }
 
     pub fn accrue_interest(&mut self, account_id: AccountId) -> Result<(), SharedError> {
         let idx = self.find_index(account_id)?;
-
-        // capture before — borrow dropped
         let before = self.accounts[idx].outstanding()?.clone();
         self.accounts[idx].accrue_interest()?;
         let after = self.accounts[idx].outstanding()?.clone();
 
         let accrued = after.sub(&before)?;
         if !accrued.is_zero() {
-            self.record_event(InterestAccrued {
-                user_id: self.owner_id,
-                account_id,
-                amount: accrued,
-            }.into());
+            self.record_event(InterestAccrued::new(
+                self.owner_id, account_id, accrued,
+            ).into());
         }
         Ok(())
     }
@@ -264,30 +261,21 @@ impl UserFinances {
     pub fn reset_cycle(&mut self, account_id: AccountId) -> Result<(), SharedError> {
         let idx = self.find_index(account_id)?;
         self.accounts[idx].reset_cycle()?;
-        self.record_event(CycleReset {
-            user_id: self.owner_id,
-            account_id,
-        }.into());
+        self.record_event(CycleReset::new(self.owner_id, account_id).into());
         Ok(())
     }
 
     pub fn mark_overdue(&mut self, account_id: AccountId) -> Result<(), SharedError> {
         let idx = self.find_index(account_id)?;
         self.accounts[idx].mark_overdue()?;
-        self.record_event(AccountMarkedOverdue {
-            user_id: self.owner_id,
-            account_id,
-        }.into());
+        self.record_event(AccountMarkedOverdue::new(self.owner_id, account_id).into());
         Ok(())
     }
 
     pub fn mark_current(&mut self, account_id: AccountId) -> Result<(), SharedError> {
         let idx = self.find_index(account_id)?;
         self.accounts[idx].mark_current()?;
-        self.record_event(AccountMarkedCurrent {
-            user_id: self.owner_id,
-            account_id,
-        }.into());
+        self.record_event(AccountMarkedCurrent::new(self.owner_id, account_id).into());
         Ok(())
     }
 
@@ -300,11 +288,9 @@ impl UserFinances {
     ) -> Result<(), SharedError> {
         let idx = self.find_index(account_id)?;
         self.accounts[idx].charge(amount)?;
-        self.record_event(CreditCardCharged {
-            user_id: self.owner_id,
-            account_id,
-            amount: amount.clone(),
-        }.into());
+        self.record_event(CreditCardCharged::new(
+            self.owner_id, account_id, amount.clone(),
+        ).into());
         Ok(())
     }
 
@@ -315,16 +301,10 @@ impl UserFinances {
     ) -> Result<(), SharedError> {
         let idx = self.find_index(account_id)?;
         self.accounts[idx].close_statement(minimum_payment.clone())?;
-
-        // read statement balance after closing — borrow dropped before record_event
         let statement_balance = self.accounts[idx].statement_balance()?;
-
-        self.record_event(StatementClosed {
-            user_id: self.owner_id,
-            account_id,
-            statement_balance,
-            minimum_payment,
-        }.into());
+        self.record_event(StatementClosed::new(
+            self.owner_id, account_id, statement_balance, minimum_payment,
+        ).into());
         Ok(())
     }
 
@@ -335,15 +315,14 @@ impl UserFinances {
         account_id: AccountId,
         investment: Investment,
     ) -> Result<(), SharedError> {
-        // build event before investment is moved
-        let event = HoldingAdded {
-            user_id: self.owner_id,
+        let event = HoldingAdded::new(
+            self.owner_id,
             account_id,
-            ticker: investment.ticker().clone(),
-            investment_type: investment.investment_type().clone(),
-            quantity: investment.quantity(),
-            unit_price: investment.unit_price().clone(),
-        };
+            investment.ticker().clone(),
+            investment.investment_type().clone(),
+            investment.quantity(),
+            investment.unit_price().clone(),
+        );
         let idx = self.find_index(account_id)?;
         self.accounts[idx].add_holding(investment)?;
         self.record_event(event.into());
@@ -357,31 +336,56 @@ impl UserFinances {
     ) -> Result<(), SharedError> {
         let idx = self.find_index(account_id)?;
         self.accounts[idx].remove_holding(ticker)?;
-        self.record_event(HoldingRemoved {
-            user_id: self.owner_id,
+        self.record_event(HoldingRemoved::new(
+            self.owner_id, account_id, ticker.clone(),
+        ).into());
+        Ok(())
+    }
+
+    pub fn update_holding_price(
+        &mut self,
+        account_id: AccountId,
+        ticker: &Ticker,
+        new_price: Money,
+    ) -> Result<(), SharedError> {
+        let event = HoldingPriceUpdated::new(
+            self.owner_id,
             account_id,
-            ticker: ticker.clone(),
-        }.into());
+            ticker.clone(),
+            new_price.clone(),
+        );
+        let idx = self.find_index(account_id)?;
+        self.accounts[idx].update_holding_price(ticker, new_price)?;
+        self.record_event(event.into());
         Ok(())
     }
 
     // ── Filtered views ────────────────────────────────────────────────────────
 
-    pub fn cash_accounts(&self)       -> impl Iterator<Item = &CashAccount>       { self.accounts.iter().filter_map(|a| a.as_cash()) }
-    pub fn investment_accounts(&self) -> impl Iterator<Item = &InvestmentAccount> { self.accounts.iter().filter_map(|a| a.as_investment()) }
-    pub fn credit_cards(&self)        -> impl Iterator<Item = &CreditCard>        { self.accounts.iter().filter_map(|a| a.as_credit_card()) }
-    pub fn loan_accounts(&self)       -> impl Iterator<Item = &LoanAccount>       { self.accounts.iter().filter_map(|a| a.as_loan()) }
-    pub fn physical_wallets(&self)    -> impl Iterator<Item = &PhysicalWallet>    { self.accounts.iter().filter_map(|a| a.as_physical_wallet()) }
-    pub fn digital_wallets(&self)     -> impl Iterator<Item = &DigitalWallet>     { self.accounts.iter().filter_map(|a| a.as_digital_wallet()) }
-
+    pub fn cash_accounts(&self) -> impl Iterator<Item = &CashAccount> {
+        self.accounts.iter().filter_map(|a| a.as_cash())
+    }
+    pub fn investment_accounts(&self) -> impl Iterator<Item = &InvestmentAccount> {
+        self.accounts.iter().filter_map(|a| a.as_investment())
+    }
+    pub fn credit_cards(&self) -> impl Iterator<Item = &CreditCard> {
+        self.accounts.iter().filter_map(|a| a.as_credit_card())
+    }
+    pub fn loan_accounts(&self) -> impl Iterator<Item = &LoanAccount> {
+        self.accounts.iter().filter_map(|a| a.as_loan())
+    }
+    pub fn physical_wallets(&self) -> impl Iterator<Item = &PhysicalWallet> {
+        self.accounts.iter().filter_map(|a| a.as_physical_wallet())
+    }
+    pub fn digital_wallets(&self) -> impl Iterator<Item = &DigitalWallet> {
+        self.accounts.iter().filter_map(|a| a.as_digital_wallet())
+    }
     pub fn overdue_accounts(&self) -> impl Iterator<Item = &FinancialAccount> {
         self.accounts.iter().filter(|a| a.is_overdue())
     }
-
     pub fn find_account(&self, id: AccountId) -> Option<&FinancialAccount> {
         self.accounts.iter().find(|a| a.account_id() == id)
     }
-
     pub fn find_account_mut(&mut self, id: AccountId) -> Option<&mut FinancialAccount> {
         self.accounts.iter_mut().find(|a| a.account_id() == id)
     }
@@ -391,7 +395,7 @@ impl UserFinances {
     pub fn total_assets(&self, currency: Currency) -> Result<Money, SharedError> {
         self.accounts
             .iter()
-            .filter_map(|a| match a.balance() {
+            .filter_map(|a| match a.balance_summary() {
                 Balance::Asset(m) if m.currency() == currency => Some(m),
                 _ => None,
             })
@@ -401,7 +405,7 @@ impl UserFinances {
     pub fn total_liabilities(&self, currency: Currency) -> Result<Liability, SharedError> {
         self.accounts
             .iter()
-            .filter_map(|a| match a.balance() {
+            .filter_map(|a| match a.balance_summary() {
                 Balance::Debt(l) if l.currency() == currency => Some(l),
                 _ => None,
             })
@@ -435,7 +439,7 @@ impl UserFinances {
     fn ensure_unique(&self, id: AccountId) -> Result<(), SharedError> {
         if self.accounts.iter().any(|a| a.account_id() == id) {
             return Err(SharedError::Operational(
-                "[UserFinances] account with this id already exists"
+                "[UserFinances] account with this id already exists",
             ));
         }
         Ok(())
@@ -446,5 +450,46 @@ impl UserFinances {
             .iter()
             .position(|a| a.account_id() == id)
             .ok_or(SharedError::Operational("[UserFinances] account not found"))
+    }
+
+    // ── Credit card: temporary limit management ───────────────────────────────
+
+    pub fn grant_temporary_limit(
+        &mut self,
+        account_id: AccountId,
+        new_limit: Money,
+        expires_on: chrono::NaiveDate,
+    ) -> Result<(), SharedError> {
+        use crate::domain::events::temporary_credit_limit_granted::TemporaryCreditLimitGranted;
+        let idx = self.find_index(account_id)?;
+        self.accounts[idx]
+            .as_credit_card_mut()
+            .ok_or(SharedError::Operational(
+                "[UserFinances] grant_temporary_limit called on a non-credit-card account",
+            ))?
+            .grant_temporary_limit(new_limit.clone(), expires_on)?;
+        self.record_event(
+            TemporaryCreditLimitGranted::new(self.owner_id, account_id, new_limit, expires_on)
+                .into(),
+        );
+        Ok(())
+    }
+
+    pub fn revoke_temporary_limit(
+        &mut self,
+        account_id: AccountId,
+    ) -> Result<(), SharedError> {
+        use crate::domain::events::temporary_credit_limit_revoked::TemporaryCreditLimitRevoked;
+        let idx = self.find_index(account_id)?;
+        self.accounts[idx]
+            .as_credit_card_mut()
+            .ok_or(SharedError::Operational(
+                "[UserFinances] revoke_temporary_limit called on a non-credit-card account",
+            ))?
+            .revoke_temporary_limit();
+        self.record_event(
+            TemporaryCreditLimitRevoked::new(self.owner_id, account_id).into(),
+        );
+        Ok(())
     }
 }

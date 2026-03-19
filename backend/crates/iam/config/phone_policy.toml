@@ -1,8 +1,0 @@
-subject = "phone"
-all_numbers = true
-illegal_characters = [
-    ' ', '\t',
-    '\'', '"', '`',
-    ';',
-    '\\', '/'
-]

@@ -32,4 +32,9 @@ pub(crate) mod expiration_date;
 pub(crate) mod monthly_day;
 
 pub(crate) mod financial_account;
+
+// ── Events ────────────────────────────────────────────────────────────────────
+pub(crate) mod events;
+pub(crate) mod ledger_events;
+
 pub(crate) mod user_finances;

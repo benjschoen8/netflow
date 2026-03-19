@@ -14,7 +14,7 @@ impl EventMetadata {
     }
 
     pub fn occurred_on(&self) -> Timestamp {
-        self.occurred_on()
+        self.occurred_on
     }
 
     pub fn now() -> Self {

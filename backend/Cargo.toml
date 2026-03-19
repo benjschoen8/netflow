@@ -1,16 +1,18 @@
 [package]
 name = "backend"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
 
 [workspace]
 resolver = "2"
 members = [
     "crates/shared",
-    "crates/iam",
-    "crates/profile",
-    "crates/notification",
     "crates/ledger",
 ]
 
 [dependencies]
+ledger  = { path = "crates/ledger" }
+tokio   = { version = "1", features = ["full"] }
+clap    = { version = "4", features = ["derive", "env"] }
+uuid    = { version = "1", features = ["serde", "v4"] }
+axum = "0.8.8"

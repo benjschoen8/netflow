@@ -146,6 +146,21 @@ impl CreditCard {
     pub fn revoke_temporary_limit(&mut self) {
         self.temporary_credit_limit = None;
     }
+
+    // ── Getters added for infrastructure layer ────────────────────────────────
+    pub fn credit_limit(&self) -> &Money { &self.credit_limit }
+
+    // ── Restore helpers (infrastructure layer use only) ───────────────────────
+
+    /// Restore the statement balance after loading from persistence.
+    pub fn restore_statement_balance(&mut self, balance: Liability) {
+        self.statement_balance = Some(balance);
+    }
+
+    /// Restore the minimum payment field after loading from persistence.
+    pub fn restore_minimum_payment(&mut self, payment: Liability) {
+        self.minimum_payment = Some(payment);
+    }
 }
 
 // ── FinancialEntry ────────────────────────────────────────────────────────────

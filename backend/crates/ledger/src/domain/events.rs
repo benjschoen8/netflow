@@ -10,7 +10,7 @@ pub(crate) mod funds_deposited;
 pub(crate) mod funds_withdrawn;
 pub(crate) mod payment_made;
 pub(crate) mod minimum_payment_met;
-pub(crate) mod loan_settled;
+pub(crate) mod debt_settled;
 pub(crate) mod interest_accrued;
 pub(crate) mod cycle_reset;
 pub(crate) mod account_marked_overdue;

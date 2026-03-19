@@ -13,6 +13,7 @@ pub(crate) mod sanitizable;
 pub(crate) mod shared_error;
 pub(crate) mod aggregate_root_id;
 pub(crate) mod aggregate_root;
+mod data_query; // placeholder stub — not part of public API
 
 pub use crate::domain::event_id::EventId;
 pub use crate::domain::timestamp::Timestamp;

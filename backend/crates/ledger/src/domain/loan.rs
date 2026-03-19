@@ -103,4 +103,32 @@ impl Loan {
             ..self.clone()
         })
     }
+
+    /// Restore a `Loan` from persistence, preserving both original principal
+    /// and current outstanding balance (which may have been paid down).
+    #[allow(clippy::too_many_arguments)]
+    pub fn restore(
+        principal: Liability,
+        outstanding: Liability,
+        creditor: String,
+        interest_rate: Option<Decimal>,
+        due_date: Option<MonthlyDay>,
+        maturity_date: Option<chrono::NaiveDate>,
+        minimum_payment: Option<Liability>,
+        overdue: bool,
+    ) -> Result<Self, SharedError> {
+        if creditor.trim().is_empty() {
+            return Err(SharedError::Empty("[Loan] creditor cannot be empty"));
+        }
+        Ok(Self {
+            principal,
+            outstanding,
+            creditor,
+            interest_rate,
+            due_date,
+            maturity_date,
+            minimum_payment,
+            overdue,
+        })
+    }
 }

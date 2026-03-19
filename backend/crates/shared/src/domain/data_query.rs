@@ -1,7 +1,2 @@
-use async_trait::async_trait;
-use crate::shared::domain::CorrelationId;
-
-#[async_trait]
-pub trait DataQuery<aggregate>: Send + Sync {
-    async fn by_uuid(&self) -> Result<aggregate, shared_error>;
-}
+// DataQuery — generic query trait placeholder.
+// Concrete queries live in the application layer of each bounded context.

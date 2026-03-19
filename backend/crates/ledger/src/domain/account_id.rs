@@ -26,4 +26,9 @@ impl AccountId {
     pub fn create() -> Self {
         Self(Uuid::new_v4())
     }
+
+    /// Return the inner UUID value.
+    pub fn uuid(&self) -> uuid::Uuid {
+        self.0
+    }
 }
