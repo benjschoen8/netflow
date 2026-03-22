@@ -1,18 +1,56 @@
 [package]
-name = "backend"
+name    = "backend"
 version = "0.1.0"
 edition = "2021"
 
 [workspace]
 resolver = "2"
-members = [
+members  = [
     "crates/shared",
     "crates/ledger",
+    "crates/netflow-ffi",
 ]
 
 [dependencies]
-ledger  = { path = "crates/ledger" }
-tokio   = { version = "1", features = ["full"] }
-clap    = { version = "4", features = ["derive", "env"] }
-uuid    = { version = "1", features = ["serde", "v4"] }
-axum = "0.8.8"
+ledger       = { path = "crates/ledger" }
+tokio        = { version = "1", features = ["full"] }
+clap         = { version = "4", features = ["derive", "env"] }
+uuid         = { version = "1", features = ["serde", "v4"] }
+rust_decimal = { version = "1.40" }
+
+# ── Bins ──────────────────────────────────────────────────────────────────────
+#
+#  api       →  HTTP server, prod db  ({project-root}/data/netflow.db)
+#  test-api  →  HTTP server, test db  ({project-root}/backend/netflow-test.db)
+#  ffi       →  FFI desktop smoke-test shim, prod db
+#  test-ffi  →  FFI test harness, test db
+#
+# The actual FFI shared library (.so / .dylib / .a) is produced by:
+#   cargo build -p netflow-ffi --release
+
+[[bin]]
+name              = "api"
+path              = "src/bin/api.rs"
+required-features = ["api"]
+
+[[bin]]
+name              = "test-api"
+path              = "src/bin/test_api.rs"
+required-features = ["test-api"]
+
+[[bin]]
+name              = "ffi"
+path              = "src/bin/ffi.rs"
+required-features = ["ffi-bin"]
+
+[[bin]]
+name              = "test-ffi"
+path              = "src/bin/test_ffi.rs"
+required-features = ["test-ffi"]
+
+[features]
+default  = []
+api      = ["ledger/http"]
+test-api = ["ledger/http"]
+ffi-bin  = ["ledger/ffi"]
+test-ffi = ["ledger/ffi"]

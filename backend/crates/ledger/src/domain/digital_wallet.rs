@@ -44,6 +44,8 @@ impl DigitalWallet {
 
     pub fn provider(&self) -> &DigitalWalletProvider { &self.provider }
     pub fn provider_account_id(&self) -> &ProviderAccountId { &self.provider_account_id }
+
+    pub fn rename(&mut self, name: AccountName) { self.account_name = name; }
 }
 
 impl FinancialEntry for DigitalWallet {

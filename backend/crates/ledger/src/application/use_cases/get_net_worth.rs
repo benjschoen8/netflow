@@ -1,5 +1,5 @@
-use serde::Serialize;
 use shared::domain::UserId;
+use crate::application::dto::NetWorthResult;
 
 use crate::application::error::LedgerError;
 use crate::application::ports::UserFinancesRepository;
@@ -11,15 +11,6 @@ pub struct GetNetWorthQuery {
     pub currency: Option<Currency>,
 }
 
-/// Pure-primitive DTO — no domain types escape the application layer.
-#[derive(Serialize)]
-pub struct NetWorthResult {
-    pub currency:     String,  // "USD" / "TWD"
-    pub total_assets: String,  // decimal string
-    pub total_debts:  String,  // decimal string
-    pub net_worth:    String,  // decimal string, negative means deficit
-    pub is_deficit:   bool,
-}
 
 pub async fn execute(
     repo: &dyn UserFinancesRepository,

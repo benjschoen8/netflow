@@ -1,7 +1,7 @@
 //! Central TUI state machine.
 //! Holds all data the UI needs and drives screen transitions.
 
-use crate::application::use_cases::list_accounts::AccountSummary;
+use crate::application::dto::AccountSummary;
 use crate::application::use_cases::get_net_worth::NetWorthResult;
 
 // ── Screens ───────────────────────────────────────────────────────────────────

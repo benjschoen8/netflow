@@ -1,0 +1,8 @@
+# flutter_rust_bridge_codegen configuration.
+# Run from the frontend/ directory:
+#   ~/.cargo/bin/flutter_rust_bridge_codegen generate
+
+rust_crate_dir: ../backend/crates/netflow-ffi
+rust_output_dir: lib/src/rust
+dart_output_dir: lib/src/rust
+dart_entrypoint_class_name: RustLib

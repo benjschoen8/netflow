@@ -3,7 +3,10 @@ use shared::domain::SharedError;
 use shared::domain::AggregateRoot;
 
 use crate::domain::account_id::AccountId;
+use crate::domain::account_name::AccountName;
+use crate::domain::account_number::AccountNumber;
 use crate::domain::balance::Balance;
+use crate::domain::bank::Bank;
 use crate::domain::currency::Currency;
 use crate::domain::liability::Liability;
 use crate::domain::money::Money;
@@ -41,6 +44,8 @@ use crate::domain::events::statement_closed::StatementClosed;
 use crate::domain::events::holding_added::HoldingAdded;
 use crate::domain::events::holding_removed::HoldingRemoved;
 use crate::domain::events::holding_price_updated::HoldingPriceUpdated;
+use crate::domain::events::temporary_credit_limit_granted::TemporaryCreditLimitGranted;
+use crate::domain::events::temporary_credit_limit_revoked::TemporaryCreditLimitRevoked;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct UserFinances {
@@ -177,6 +182,25 @@ impl UserFinances {
         Ok(())
     }
 
+    // ── Account info mutation ─────────────────────────────────────────────────
+
+    /// Patch display-info fields on any account.
+    /// Only `Some(...)` values are applied; `None` leaves the field unchanged.
+    pub fn update_account_info(
+        &mut self,
+        id: AccountId,
+        name: Option<AccountName>,
+        bank: Option<Bank>,
+        account_number: Option<AccountNumber>,
+    ) -> Result<(), SharedError> {
+        let account = self.find_account_mut(id)
+            .ok_or(SharedError::Operational("[UserFinances] account not found"))?;
+        if let Some(n)  = name           { account.rename(n); }
+        if let Some(b)  = bank           { account.set_bank(b); }
+        if let Some(an) = account_number { account.set_account_number(an); }
+        Ok(())
+    }
+
     // ── Asset mutations ───────────────────────────────────────────────────────
 
     pub fn deposit(&mut self, account_id: AccountId, amount: &Money) -> Result<(), SharedError> {
@@ -209,23 +233,24 @@ impl UserFinances {
         debt_id: AccountId,
         amount: &Liability,
     ) -> Result<(), SharedError> {
+        if from_id == debt_id {
+            return Err(SharedError::Operational(
+                "[UserFinances] cannot make a payment from an account to itself",
+            ));
+        }
+
         let payment_as_money = Money::new(amount.amount(), amount.currency())?;
 
-        {
-            let from = &self.accounts[self.find_index(from_id)?];
-            let balance = from.asset_balance()?;
-            balance.sub(&payment_as_money)?;
-        }
-        {
-            let debt = &self.accounts[self.find_index(debt_id)?];
-            let outstanding = debt.outstanding()?;
-            outstanding.sub(amount)?;
-        }
-
+        // Find both indices once upfront — validates both accounts exist.
         let from_idx = self.find_index(from_id)?;
-        self.accounts[from_idx].withdraw(&payment_as_money)?;
-
         let debt_idx = self.find_index(debt_id)?;
+
+        // Pre-flight validation (immutable borrows, no mutation yet).
+        self.accounts[from_idx].asset_balance()?.sub(&payment_as_money)?;
+        self.accounts[debt_idx].outstanding()?.sub(amount)?;
+
+        // Mutation.
+        self.accounts[from_idx].withdraw(&payment_as_money)?;
         self.accounts[debt_idx].make_payment(amount)?;
 
         let minimum_met = self.accounts[debt_idx].minimum_payment_paid();
@@ -294,18 +319,21 @@ impl UserFinances {
         Ok(())
     }
 
+    /// Closes the statement on a credit card.
+    /// Returns the recorded statement balance so the application layer can
+    /// create a Statement record without a second repo.load().
     pub fn close_statement(
         &mut self,
         account_id: AccountId,
         minimum_payment: Option<Liability>,
-    ) -> Result<(), SharedError> {
+    ) -> Result<Liability, SharedError> {
         let idx = self.find_index(account_id)?;
         self.accounts[idx].close_statement(minimum_payment.clone())?;
         let statement_balance = self.accounts[idx].statement_balance()?;
         self.record_event(StatementClosed::new(
-            self.owner_id, account_id, statement_balance, minimum_payment,
+            self.owner_id, account_id, statement_balance.clone(), minimum_payment,
         ).into());
-        Ok(())
+        Ok(statement_balance)
     }
 
     // ── Investment specific ───────────────────────────────────────────────────
@@ -393,13 +421,24 @@ impl UserFinances {
     // ── Summaries ─────────────────────────────────────────────────────────────
 
     pub fn total_assets(&self, currency: Currency) -> Result<Money, SharedError> {
-        self.accounts
-            .iter()
-            .filter_map(|a| match a.balance_summary() {
-                Balance::Asset(m) if m.currency() == currency => Some(m),
-                _ => None,
-            })
-            .try_fold(Money::zero(currency), |acc, m| acc.add(&m))
+        // Investment accounts contribute total_value (cash + holdings), not just cash.
+        // All other asset accounts contribute their balance directly.
+        let mut total = Money::zero(currency);
+        for account in &self.accounts {
+            let contribution: Option<Money> = match account {
+                FinancialAccount::Investment(a) if a.currency() == currency => {
+                    Some(a.total_value()?)
+                }
+                other => match other.balance_summary() {
+                    Balance::Asset(m) if m.currency() == currency => Some(m),
+                    _ => None,
+                },
+            };
+            if let Some(m) = contribution {
+                total = total.add(&m)?;
+            }
+        }
+        Ok(total)
     }
 
     pub fn total_liabilities(&self, currency: Currency) -> Result<Liability, SharedError> {
@@ -460,7 +499,6 @@ impl UserFinances {
         new_limit: Money,
         expires_on: chrono::NaiveDate,
     ) -> Result<(), SharedError> {
-        use crate::domain::events::temporary_credit_limit_granted::TemporaryCreditLimitGranted;
         let idx = self.find_index(account_id)?;
         self.accounts[idx]
             .as_credit_card_mut()
@@ -479,7 +517,6 @@ impl UserFinances {
         &mut self,
         account_id: AccountId,
     ) -> Result<(), SharedError> {
-        use crate::domain::events::temporary_credit_limit_revoked::TemporaryCreditLimitRevoked;
         let idx = self.find_index(account_id)?;
         self.accounts[idx]
             .as_credit_card_mut()

@@ -1,6 +1,4 @@
 //! String → domain value-object converters shared across use cases.
-//! These live in the application layer so both the use cases and the
-//! interface layer can use them without either depending on the other.
 
 use crate::application::error::LedgerError;
 use crate::domain::card_network::CardNetwork;

@@ -1,7 +1,8 @@
+use shared::domain::AggregateRoot;
 use shared::domain::UserId;
 
 use crate::application::error::LedgerError;
-use crate::application::ports::UserFinancesRepository;
+use crate::application::ports::{LedgerUnitOfWork, WriteOperation};
 use crate::domain::account_id::AccountId;
 
 pub struct RevokeTemporaryLimitCommand {
@@ -10,10 +11,11 @@ pub struct RevokeTemporaryLimitCommand {
 }
 
 pub async fn execute(
-    repo: &dyn UserFinancesRepository,
+    uow: &dyn LedgerUnitOfWork,
     cmd: RevokeTemporaryLimitCommand,
 ) -> Result<(), LedgerError> {
-    let mut finances = repo.load(cmd.owner_id).await?;
+    let mut finances = uow.load(cmd.owner_id).await?;
     finances.revoke_temporary_limit(cmd.account_id)?;
-    repo.save(&finances).await
+    let _events = finances.pull_events();
+    uow.commit(WriteOperation::new(&finances, vec![])).await
 }

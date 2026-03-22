@@ -5,7 +5,7 @@ use shared::domain::UserId;
 use uuid::Uuid;
 
 use crate::application::error::LedgerError;
-use crate::application::ports::UserFinancesRepository;
+use crate::application::ports::{LedgerUnitOfWork, UserFinancesRepository};
 use crate::application::use_cases::{
     accrue_interest, add_credit_card, add_digital_wallet, add_holding,
     add_physical_wallet, charge_credit_card, close_statement,
@@ -33,7 +33,8 @@ pub fn resolve_user(user: Option<Uuid>) -> UserId {
 // ── Main dispatch ─────────────────────────────────────────────────────────────
 
 pub async fn dispatch(
-    repo: &dyn UserFinancesRepository,
+    repo:    &dyn UserFinancesRepository,
+    uow:     &dyn LedgerUnitOfWork,
     user_id: UserId,
     command: Commands,
 ) -> Result<(), LedgerError> {
@@ -41,7 +42,7 @@ pub async fn dispatch(
         // ── Init ──────────────────────────────────────────────────────────────
         Commands::Init => {
             create_user_finances::execute(
-                repo,
+                uow,
                 create_user_finances::CreateUserFinancesCommand { owner_id: user_id },
             )
             .await?;
@@ -115,12 +116,14 @@ pub async fn dispatch(
         // ── Deposit ───────────────────────────────────────────────────────────
         Commands::Deposit { account, amount, currency } => {
             deposit_funds::execute(
-                repo,
+                uow,
                 deposit_funds::DepositFundsCommand {
-                    owner_id:   user_id,
-                    account_id: AccountId::restore(account)?,
+                    owner_id:    user_id,
+                    account_id:  AccountId::restore(account)?,
                     amount,
-                    currency:   currency.into(),
+                    currency:    currency.into(),
+                    label:       None,
+                    description: None,
                 },
             )
             .await?;
@@ -130,12 +133,14 @@ pub async fn dispatch(
         // ── Withdraw ──────────────────────────────────────────────────────────
         Commands::Withdraw { account, amount, currency } => {
             withdraw_funds::execute(
-                repo,
+                uow,
                 withdraw_funds::WithdrawFundsCommand {
-                    owner_id:   user_id,
-                    account_id: AccountId::restore(account)?,
+                    owner_id:    user_id,
+                    account_id:  AccountId::restore(account)?,
                     amount,
-                    currency:   currency.into(),
+                    currency:    currency.into(),
+                    label:       None,
+                    description: None,
                 },
             )
             .await?;
@@ -144,14 +149,18 @@ pub async fn dispatch(
 
         // ── Pay ───────────────────────────────────────────────────────────────
         Commands::Pay { from, to, amount, currency } => {
-            make_payment::execute(
-                repo,
+            let _ = make_payment::execute(
+                uow,
+                // CLI has no billing statements — use a no-op stub
+                &crate::infrastructure::NoOpStatementRepository,
                 make_payment::MakePaymentCommand {
                     owner_id:        user_id,
                     from_account_id: AccountId::restore(from)?,
                     debt_account_id: AccountId::restore(to)?,
                     amount,
                     currency:        currency.into(),
+                    label:           None,
+                    description:     None,
                 },
             )
             .await?;
@@ -161,12 +170,14 @@ pub async fn dispatch(
         // ── Charge ────────────────────────────────────────────────────────────
         Commands::Charge { account, amount, currency } => {
             charge_credit_card::execute(
-                repo,
+                uow,
                 charge_credit_card::ChargeCreditCardCommand {
-                    owner_id:   user_id,
-                    account_id: AccountId::restore(account)?,
+                    owner_id:    user_id,
+                    account_id:  AccountId::restore(account)?,
                     amount,
-                    currency:   currency.into(),
+                    currency:    currency.into(),
+                    label:       None,
+                    description: None,
                 },
             )
             .await?;
@@ -179,7 +190,7 @@ pub async fn dispatch(
             use crate::application::use_cases::grant_temporary_limit;
             let expires_on = super::parse_helpers::parse_naive_date(&expires)?;
             grant_temporary_limit::execute(
-                repo,
+                uow,
                 grant_temporary_limit::GrantTemporaryLimitCommand {
                     owner_id:   user_id,
                     account_id: AccountId::restore(account)?,
@@ -194,7 +205,7 @@ pub async fn dispatch(
 
         // ── Close statement ───────────────────────────────────────────────────
         Commands::CloseStatement { account, min_payment, currency } => {
-            close_statement::execute(
+            let _ = close_statement::execute(
                 repo,
                 close_statement::CloseStatementCommand {
                     owner_id:        user_id,
@@ -210,7 +221,7 @@ pub async fn dispatch(
         // ── Revoke temporary limit ────────────────────────────────────────────
         Commands::RevokeLimit { account } => {
             revoke_temporary_limit::execute(
-                repo,
+                uow,
                 revoke_temporary_limit::RevokeTemporaryLimitCommand {
                     owner_id:   user_id,
                     account_id: AccountId::restore(account)?,
@@ -222,8 +233,8 @@ pub async fn dispatch(
 
         // ── Accrue interest ───────────────────────────────────────────────────
         Commands::AccrueInterest { account } => {
-            accrue_interest::execute(
-                repo,
+            let _ = accrue_interest::execute(
+                uow,
                 accrue_interest::AccrueInterestCommand {
                     owner_id:   user_id,
                     account_id: AccountId::restore(account)?,
@@ -234,10 +245,10 @@ pub async fn dispatch(
         }
 
         // ── Account subcommands ───────────────────────────────────────────────
-        Commands::Account(sub) => handle_account(repo, user_id, sub).await?,
+        Commands::Account(sub) => handle_account(uow, user_id, sub).await?,
 
         // ── Holding subcommands ───────────────────────────────────────────────
-        Commands::Holding(sub) => handle_holding(repo, user_id, sub).await?,
+        Commands::Holding(sub) => handle_holding(uow, user_id, sub).await?,
     }
 
     Ok(())
@@ -246,14 +257,14 @@ pub async fn dispatch(
 // ── Account subcommand handler ────────────────────────────────────────────────
 
 async fn handle_account(
-    repo: &dyn UserFinancesRepository,
+    uow: &dyn LedgerUnitOfWork,
     user_id: UserId,
     cmd: AccountCommands,
 ) -> Result<(), LedgerError> {
     match cmd {
         AccountCommands::Cash { name, number, bank, currency, balance } => {
             open_cash_account::execute(
-                repo,
+                uow,
                 open_cash_account::OpenCashAccountCommand {
                     owner_id:        user_id,
                     name,
@@ -269,7 +280,7 @@ async fn handle_account(
 
         AccountCommands::Wallet { name, currency, balance } => {
             add_physical_wallet::execute(
-                repo,
+                uow,
                 add_physical_wallet::AddPhysicalWalletCommand {
                     owner_id:        user_id,
                     name,
@@ -283,7 +294,7 @@ async fn handle_account(
 
         AccountCommands::DigitalWallet { name, provider, provider_id, currency, balance } => {
             add_digital_wallet::execute(
-                repo,
+                uow,
                 add_digital_wallet::AddDigitalWalletCommand {
                     owner_id:            user_id,
                     name,
@@ -299,7 +310,7 @@ async fn handle_account(
 
         AccountCommands::Investment { name, number, bank, currency, cash } => {
             open_investment_account::execute(
-                repo,
+                uow,
                 open_investment_account::OpenInvestmentAccountCommand {
                     owner_id:       user_id,
                     name,
@@ -318,7 +329,7 @@ async fn handle_account(
             limit, currency, outstanding, statement_day, due_day, rate,
         } => {
             add_credit_card::execute(
-                repo,
+                uow,
                 add_credit_card::AddCreditCardCommand {
                     owner_id:           user_id,
                     name,
@@ -345,7 +356,7 @@ async fn handle_account(
         } => {
             let maturity_date = maturity.as_deref().map(parse_naive_date).transpose()?;
             open_loan_account::execute(
-                repo,
+                uow,
                 open_loan_account::OpenLoanAccountCommand {
                     owner_id:        user_id,
                     name,
@@ -366,7 +377,7 @@ async fn handle_account(
 
         AccountCommands::Remove { id } => {
             remove_account::execute(
-                repo,
+                uow,
                 remove_account::RemoveAccountCommand {
                     owner_id:   user_id,
                     account_id: AccountId::restore(id)?,
@@ -382,14 +393,14 @@ async fn handle_account(
 // ── Holding subcommand handler ────────────────────────────────────────────────
 
 async fn handle_holding(
-    repo: &dyn UserFinancesRepository,
+    uow: &dyn LedgerUnitOfWork,
     user_id: UserId,
     cmd: HoldingCommands,
 ) -> Result<(), LedgerError> {
     match cmd {
         HoldingCommands::Add { account, ticker, kind, qty, price, currency } => {
             add_holding::execute(
-                repo,
+                uow,
                 add_holding::AddHoldingCommand {
                     owner_id:        user_id,
                     account_id:      AccountId::restore(account)?,
@@ -406,7 +417,7 @@ async fn handle_holding(
 
         HoldingCommands::Remove { account, ticker } => {
             remove_holding::execute(
-                repo,
+                uow,
                 remove_holding::RemoveHoldingCommand {
                     owner_id:   user_id,
                     account_id: AccountId::restore(account)?,
@@ -419,7 +430,7 @@ async fn handle_holding(
 
         HoldingCommands::UpdatePrice { account, ticker, price, currency } => {
             update_holding_price::execute(
-                repo,
+                uow,
                 update_holding_price::UpdateHoldingPriceCommand {
                     owner_id:   user_id,
                     account_id: AccountId::restore(account)?,

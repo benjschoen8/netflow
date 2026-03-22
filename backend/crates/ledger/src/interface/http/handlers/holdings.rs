@@ -9,10 +9,12 @@ use serde::Deserialize;
 use uuid::Uuid;
 
 use crate::application::error::LedgerError;
+use std::str::FromStr;
+use crate::domain::currency::Currency;
 use crate::application::use_cases::{add_holding, remove_holding, update_holding_price};
 use crate::domain::account_id::AccountId;
 use crate::interface::http::app_state::AppState;
-use super::accounts::parse_currency;
+
 
 // ── Add holding ───────────────────────────────────────────────────────────────
 
@@ -30,14 +32,14 @@ pub async fn add(
     Path(account_id): Path<Uuid>,
     Json(req): Json<AddHoldingRequest>,
 ) -> Result<impl IntoResponse, LedgerError> {
-    add_holding::execute(s.repo.as_ref(), add_holding::AddHoldingCommand {
+    add_holding::execute(s.uow.as_ref(), add_holding::AddHoldingCommand {
         owner_id:        s.user_id,
         account_id:      AccountId::restore(account_id)?,
         ticker:          req.ticker,
         investment_type: req.investment_type,
         quantity:        req.quantity,
         unit_price:      req.unit_price,
-        currency:        parse_currency(&req.currency)?,
+        currency:        req.currency.parse::<Currency>().map_err(LedgerError::Validation)?,
     }).await?;
     Ok(StatusCode::CREATED)
 }
@@ -48,7 +50,7 @@ pub async fn remove(
     State(s): State<AppState>,
     Path((account_id, ticker)): Path<(Uuid, String)>,
 ) -> Result<impl IntoResponse, LedgerError> {
-    remove_holding::execute(s.repo.as_ref(), remove_holding::RemoveHoldingCommand {
+    remove_holding::execute(s.uow.as_ref(), remove_holding::RemoveHoldingCommand {
         owner_id:   s.user_id,
         account_id: AccountId::restore(account_id)?,
         ticker,
@@ -69,12 +71,12 @@ pub async fn update_price(
     Path((account_id, ticker)): Path<(Uuid, String)>,
     Json(req): Json<UpdatePriceRequest>,
 ) -> Result<impl IntoResponse, LedgerError> {
-    update_holding_price::execute(s.repo.as_ref(), update_holding_price::UpdateHoldingPriceCommand {
+    update_holding_price::execute(s.uow.as_ref(), update_holding_price::UpdateHoldingPriceCommand {
         owner_id:   s.user_id,
         account_id: AccountId::restore(account_id)?,
         ticker,
         new_price:  req.new_price,
-        currency:   parse_currency(&req.currency)?,
+        currency:   req.currency.parse::<Currency>().map_err(LedgerError::Validation)?,
     }).await?;
     Ok(StatusCode::OK)
 }

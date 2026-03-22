@@ -1,4 +1,4 @@
-pub(crate) mod currency;
+pub mod currency;           // pub so external bins (seed) can use Currency directly
 pub(crate) mod money;
 pub(crate) mod liability;
 pub(crate) mod balance;
@@ -37,4 +37,6 @@ pub(crate) mod financial_account;
 pub(crate) mod events;
 pub(crate) mod ledger_events;
 
+pub(crate) mod ledger_entry;
+pub(crate) mod statement;
 pub(crate) mod user_finances;

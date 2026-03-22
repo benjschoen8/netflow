@@ -13,8 +13,10 @@ use crate::application::use_cases::{
     create_user_finances, list_accounts, get_net_worth,
     open_cash_account, add_physical_wallet, add_digital_wallet,
     open_investment_account, add_credit_card, open_loan_account,
-    remove_account,
+    remove_account, update_account_info, transfer_funds,
 };
+
+use std::str::FromStr;
 use crate::domain::account_id::AccountId;
 use crate::domain::currency::Currency;
 use crate::interface::http::app_state::AppState;
@@ -23,7 +25,7 @@ use crate::interface::http::app_state::AppState;
 
 pub async fn init(State(s): State<AppState>) -> Result<impl IntoResponse, LedgerError> {
     create_user_finances::execute(
-        s.repo.as_ref(),
+        s.uow.as_ref(),
         create_user_finances::CreateUserFinancesCommand { owner_id: s.user_id },
     ).await?;
     Ok(StatusCode::CREATED)
@@ -50,7 +52,7 @@ pub async fn net_worth(
     State(s): State<AppState>,
     axum::extract::Query(params): axum::extract::Query<NetWorthParams>,
 ) -> Result<impl IntoResponse, LedgerError> {
-    let currency = params.currency.as_deref().map(parse_currency).transpose()?;
+    let currency = params.currency.as_deref().map(|s| s.parse::<Currency>().map_err(LedgerError::Validation)).transpose()?;
     let result = get_net_worth::execute(
         s.repo.as_ref(),
         get_net_worth::GetNetWorthQuery { owner_id: s.user_id, currency },
@@ -73,12 +75,12 @@ pub async fn open_cash(
     State(s): State<AppState>,
     Json(req): Json<OpenCashAccountRequest>,
 ) -> Result<impl IntoResponse, LedgerError> {
-    open_cash_account::execute(s.repo.as_ref(), open_cash_account::OpenCashAccountCommand {
+    open_cash_account::execute(s.uow.as_ref(), open_cash_account::OpenCashAccountCommand {
         owner_id:        s.user_id,
         name:            req.name,
         account_number:  req.account_number,
         bank:            req.bank,
-        currency:        parse_currency(&req.currency)?,
+        currency:        req.currency.parse::<Currency>().map_err(LedgerError::Validation)?,
         initial_balance: req.initial_balance,
     }).await?;
     Ok(StatusCode::CREATED)
@@ -97,10 +99,10 @@ pub async fn add_wallet(
     State(s): State<AppState>,
     Json(req): Json<AddWalletRequest>,
 ) -> Result<impl IntoResponse, LedgerError> {
-    add_physical_wallet::execute(s.repo.as_ref(), add_physical_wallet::AddPhysicalWalletCommand {
+    add_physical_wallet::execute(s.uow.as_ref(), add_physical_wallet::AddPhysicalWalletCommand {
         owner_id:        s.user_id,
         name:            req.name,
-        currency:        parse_currency(&req.currency)?,
+        currency:        req.currency.parse::<Currency>().map_err(LedgerError::Validation)?,
         initial_balance: req.initial_balance,
     }).await?;
     Ok(StatusCode::CREATED)
@@ -121,12 +123,12 @@ pub async fn add_digital_wallet_handler(
     State(s): State<AppState>,
     Json(req): Json<AddDigitalWalletRequest>,
 ) -> Result<impl IntoResponse, LedgerError> {
-    add_digital_wallet::execute(s.repo.as_ref(), add_digital_wallet::AddDigitalWalletCommand {
+    add_digital_wallet::execute(s.uow.as_ref(), add_digital_wallet::AddDigitalWalletCommand {
         owner_id:            s.user_id,
         name:                req.name,
         provider:            req.provider,
         provider_account_id: req.provider_account_id,
-        currency:            parse_currency(&req.currency)?,
+        currency:            req.currency.parse::<Currency>().map_err(LedgerError::Validation)?,
         initial_balance:     req.initial_balance,
     }).await?;
     Ok(StatusCode::CREATED)
@@ -147,12 +149,12 @@ pub async fn open_investment(
     State(s): State<AppState>,
     Json(req): Json<OpenInvestmentRequest>,
 ) -> Result<impl IntoResponse, LedgerError> {
-    open_investment_account::execute(s.repo.as_ref(), open_investment_account::OpenInvestmentAccountCommand {
+    open_investment_account::execute(s.uow.as_ref(), open_investment_account::OpenInvestmentAccountCommand {
         owner_id:       s.user_id,
         name:           req.name,
         account_number: req.account_number,
         bank:           req.bank,
-        currency:       parse_currency(&req.currency)?,
+        currency:       req.currency.parse::<Currency>().map_err(LedgerError::Validation)?,
         cash_balance:   req.cash_balance,
     }).await?;
     Ok(StatusCode::CREATED)
@@ -180,7 +182,7 @@ pub async fn add_credit_card_handler(
     State(s): State<AppState>,
     Json(req): Json<AddCreditCardRequest>,
 ) -> Result<impl IntoResponse, LedgerError> {
-    add_credit_card::execute(s.repo.as_ref(), add_credit_card::AddCreditCardCommand {
+    add_credit_card::execute(s.uow.as_ref(), add_credit_card::AddCreditCardCommand {
         owner_id:           s.user_id,
         name:               req.name,
         last_four:          req.last_four,
@@ -188,7 +190,7 @@ pub async fn add_credit_card_handler(
         expiry_month:       req.expiry_month,
         expiry_year:        req.expiry_year,
         credit_limit:       req.credit_limit,
-        currency:           parse_currency(&req.currency)?,
+        currency:           req.currency.parse::<Currency>().map_err(LedgerError::Validation)?,
         outstanding:        req.outstanding.unwrap_or(Decimal::ZERO),
         cash_advance_limit: req.cash_advance_limit,
         statement_day:      req.statement_day,
@@ -224,13 +226,13 @@ pub async fn open_loan(
             .map_err(|_| LedgerError::Validation(format!("Invalid date: {}", s))))
         .transpose()?;
 
-    open_loan_account::execute(s.repo.as_ref(), open_loan_account::OpenLoanAccountCommand {
+    open_loan_account::execute(s.uow.as_ref(), open_loan_account::OpenLoanAccountCommand {
         owner_id:        s.user_id,
         name:            req.name,
         account_number:  req.account_number,
         bank:            req.bank,
         creditor:        req.creditor,
-        currency:        parse_currency(&req.currency)?,
+        currency:        req.currency.parse::<Currency>().map_err(LedgerError::Validation)?,
         principal:       req.principal,
         interest_rate:   req.interest_rate,
         due_day:         req.due_day,
@@ -246,19 +248,63 @@ pub async fn remove(
     State(s): State<AppState>,
     Path(id): Path<Uuid>,
 ) -> Result<impl IntoResponse, LedgerError> {
-    remove_account::execute(s.repo.as_ref(), remove_account::RemoveAccountCommand {
+    remove_account::execute(s.uow.as_ref(), remove_account::RemoveAccountCommand {
         owner_id:   s.user_id,
         account_id: AccountId::restore(id)?,
     }).await?;
     Ok(StatusCode::NO_CONTENT)
 }
 
-// ── Helper ────────────────────────────────────────────────────────────────────
+// ── Update account info ───────────────────────────────────────────────────────
 
-pub fn parse_currency(s: &str) -> Result<Currency, LedgerError> {
-    match s.to_uppercase().as_str() {
-        "TWD" => Ok(Currency::TWD),
-        "USD" => Ok(Currency::USD),
-        other => Err(LedgerError::Validation(format!("Unknown currency: {}", other))),
-    }
+#[derive(Deserialize)]
+pub struct UpdateAccountInfoRequest {
+    pub name:           Option<String>,
+    pub bank:           Option<String>,
+    pub account_number: Option<String>,
 }
+
+pub async fn update_info(
+    State(s): State<AppState>,
+    Path(id): Path<Uuid>,
+    Json(req): Json<UpdateAccountInfoRequest>,
+) -> Result<impl IntoResponse, LedgerError> {
+    update_account_info::execute(s.uow.as_ref(), update_account_info::UpdateAccountInfoCommand {
+        owner_id:       s.user_id,
+        account_id:     id,
+        name:           req.name,
+        bank:           req.bank,
+        account_number: req.account_number,
+    }).await?;
+    Ok(StatusCode::NO_CONTENT)
+}
+
+// ── Transfer funds ────────────────────────────────────────────────────────────
+
+#[derive(Deserialize)]
+pub struct TransferFundsRequest {
+    pub to_account_id: Uuid,
+    pub amount:        Decimal,
+    pub currency:      String,
+    pub label:         Option<String>,
+    pub description:   Option<String>,
+}
+
+pub async fn transfer(
+    State(s): State<AppState>,
+    Path(from_id): Path<Uuid>,
+    Json(req): Json<TransferFundsRequest>,
+) -> Result<impl IntoResponse, LedgerError> {
+    transfer_funds::execute(s.uow.as_ref(), transfer_funds::TransferFundsCommand {
+        owner_id:        s.user_id,
+        from_account_id: AccountId::restore(from_id)?,
+        to_account_id:   AccountId::restore(req.to_account_id)?,
+        amount:          req.amount,
+        currency:        req.currency.parse::<Currency>().map_err(LedgerError::Validation)?,
+        label:           req.label,
+        description:     req.description,
+    }).await?;
+    Ok(StatusCode::NO_CONTENT)
+}
+
+// ── Helper ────────────────────────────────────────────────────────────────────

@@ -1,0 +1,12 @@
+[package]
+name    = "netflow-ffi"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name       = "netflow_ffi"
+crate-type = ["cdylib", "staticlib", "rlib"]
+
+[dependencies]
+ledger              = { path = "../ledger", features = ["ffi"] }
+flutter_rust_bridge = { version = "2.11.1" }

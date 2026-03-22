@@ -9,6 +9,8 @@ pub mod open_investment_account;
 pub mod add_credit_card;
 pub mod open_loan_account;
 pub mod remove_account;
+pub mod update_account_info;
+pub mod transfer_funds;
 
 // ── Asset mutations ───────────────────────────────────────────────────────────
 pub mod deposit_funds;
@@ -21,6 +23,7 @@ pub mod accrue_interest;
 // ── Credit card specific ──────────────────────────────────────────────────────
 pub mod charge_credit_card;
 pub mod close_statement;
+pub mod close_statement_with_record;
 pub mod grant_temporary_limit;
 pub mod revoke_temporary_limit;
 

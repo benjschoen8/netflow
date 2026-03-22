@@ -3,7 +3,7 @@ use shared::domain::UserId;
 
 use crate::application::error::LedgerError;
 use crate::application::ports::UserFinancesRepository;
-use crate::application::use_cases::list_accounts::AccountSummary;
+use crate::application::dto::AccountSummary;
 
 pub struct GetAccountQuery {
     pub owner_id:   UserId,

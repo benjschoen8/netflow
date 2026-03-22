@@ -106,6 +106,8 @@ impl CreditCard {
 
     pub fn card_last_four(&self) -> &CardLastFour { &self.card_last_four }
     pub fn network(&self) -> &CardNetwork { &self.network }
+
+    pub fn rename(&mut self, name: AccountName) { self.account_name = name; }
     pub fn expiration_date(&self) -> ExpirationDate { self.expiration_date }
     pub fn cash_advance_limit(&self) -> Option<&Money> { self.cash_advance_limit.as_ref() }
     pub fn statement_balance(&self) -> Option<&Liability> { self.statement_balance.as_ref() }

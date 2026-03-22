@@ -2,25 +2,16 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../config.dart';
 
-/// Thin wrapper around [http.Client] that:
-///   - prefixes all paths with [AppConfig.baseUrl]
-///   - encodes/decodes JSON
-///   - converts non-2xx responses into [ApiException]
 class ApiClient {
   ApiClient({http.Client? client}) : _client = client ?? http.Client();
 
   final http.Client _client;
   final String _base = AppConfig.baseUrl;
 
-  // ── GET ───────────────────────────────────────────────────────────────────
-
   Future<dynamic> get(String path, {Map<String, String>? query}) async {
-    final uri = _uri(path, query);
-    final res = await _client.get(uri, headers: _headers());
+    final res = await _client.get(_uri(path, query), headers: _headers());
     return _decode(res);
   }
-
-  // ── POST ──────────────────────────────────────────────────────────────────
 
   Future<dynamic> post(String path, [Object? body]) async {
     final res = await _client.post(
@@ -31,8 +22,6 @@ class ApiClient {
     return _decode(res);
   }
 
-  // ── PATCH ─────────────────────────────────────────────────────────────────
-
   Future<dynamic> patch(String path, [Object? body]) async {
     final res = await _client.patch(
       _uri(path),
@@ -42,14 +31,10 @@ class ApiClient {
     return _decode(res);
   }
 
-  // ── DELETE ────────────────────────────────────────────────────────────────
-
   Future<void> delete(String path) async {
     final res = await _client.delete(_uri(path), headers: _headers());
     _decode(res);
   }
-
-  // ── Helpers ───────────────────────────────────────────────────────────────
 
   Uri _uri(String path, [Map<String, String>? query]) {
     final base = Uri.parse(_base);
@@ -87,6 +72,8 @@ class ApiException implements Exception {
   final int statusCode;
   final String message;
   const ApiException(this.statusCode, this.message);
+
+  bool get isNotFound => statusCode == 404;
 
   @override
   String toString() => 'ApiException($statusCode): $message';

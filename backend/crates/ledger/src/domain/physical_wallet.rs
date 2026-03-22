@@ -21,6 +21,8 @@ impl PhysicalWallet {
     ) -> Self {
         Self { account_id, account_name, balance }
     }
+
+    pub fn rename(&mut self, name: AccountName) { self.account_name = name; }
 }
 
 impl FinancialEntry for PhysicalWallet {

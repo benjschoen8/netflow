@@ -1,9 +1,10 @@
 use rust_decimal::Decimal;
+use shared::domain::AggregateRoot;
 use shared::domain::UserId;
 
 use crate::application::error::LedgerError;
 use crate::application::parse_helpers::parse_card_network;
-use crate::application::ports::UserFinancesRepository;
+use crate::application::ports::{LedgerUnitOfWork, WriteOperation};
 use crate::domain::account_id::AccountId;
 use crate::domain::account_name::AccountName;
 use crate::domain::card_last_four::CardLastFour;
@@ -32,10 +33,10 @@ pub struct AddCreditCardCommand {
 }
 
 pub async fn execute(
-    repo: &dyn UserFinancesRepository,
+    uow: &dyn LedgerUnitOfWork,
     cmd: AddCreditCardCommand,
 ) -> Result<(), LedgerError> {
-    let mut finances = repo.load(cmd.owner_id).await?;
+    let mut finances = uow.load(cmd.owner_id).await?;
 
     let cash_advance = cmd.cash_advance_limit
         .map(|a| Money::new(a, cmd.currency))
@@ -56,5 +57,6 @@ pub async fn execute(
     )?;
 
     finances.add_credit_card(card)?;
-    repo.save(&finances).await
+    let _events = finances.pull_events();
+    uow.commit(WriteOperation::new(&finances, vec![])).await
 }

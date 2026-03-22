@@ -1,6 +1,7 @@
 //! TUI event loop — wires the app state, renderer, and use cases together.
 
 use std::time::Duration;
+use std::str::FromStr;
 use crossterm::{
     event::{self, DisableMouseCapture, EnableMouseCapture, Event},
     execute,
@@ -31,18 +32,6 @@ use crate::domain::{
 };
 
 use super::{app::App, events::{handle_key, EventOutcome}, ui};
-
-// ── Currency parsing helper ───────────────────────────────────────────────────
-
-fn parse_currency(s: &str) -> Result<Currency, LedgerError> {
-    match s.to_lowercase().as_str() {
-        "usd" => Ok(Currency::USD),
-        "twd" => Ok(Currency::TWD),
-        other  => Err(LedgerError::Validation(
-            format!("Unknown currency '{}'. Use 'usd' or 'twd'.", other)
-        )),
-    }
-}
 
 // ── Data loader ───────────────────────────────────────────────────────────────
 
@@ -80,7 +69,7 @@ async fn submit_form(
             name:            v(0),
             account_number:  v(1),
             bank:            v(2),
-            currency:        parse_currency(&v(3))?,
+            currency:        v(3).parse::<Currency>().map_err(LedgerError::Validation)?,
             initial_balance: v(4).parse().map_err(|_| LedgerError::Validation("Invalid balance".into()))?,
         }).await,
 
@@ -88,7 +77,7 @@ async fn submit_form(
         1 => add_physical_wallet::execute(repo, AddPhysicalWalletCommand {
             owner_id:        user_id,
             name:            v(0),
-            currency:        parse_currency(&v(1))?,
+            currency:        v(1).parse::<Currency>().map_err(LedgerError::Validation)?,
             initial_balance: v(2).parse().map_err(|_| LedgerError::Validation("Invalid balance".into()))?,
         }).await,
 
@@ -98,7 +87,7 @@ async fn submit_form(
             name:                v(0),
             provider:            v(1),
             provider_account_id: v(2),
-            currency:            parse_currency(&v(3))?,
+            currency:            v(3).parse::<Currency>().map_err(LedgerError::Validation)?,
             initial_balance:     v(4).parse().map_err(|_| LedgerError::Validation("Invalid balance".into()))?,
         }).await,
 
@@ -108,7 +97,7 @@ async fn submit_form(
             name:           v(0),
             account_number: v(1),
             bank:           v(2),
-            currency:       parse_currency(&v(3))?,
+            currency:       v(3).parse::<Currency>().map_err(LedgerError::Validation)?,
             cash_balance:   v(4).parse().map_err(|_| LedgerError::Validation("Invalid balance".into()))?,
         }).await,
 
@@ -121,7 +110,7 @@ async fn submit_form(
             expiry_month:       v(3).parse().map_err(|_| LedgerError::Validation("Invalid month".into()))?,
             expiry_year:        v(4).parse().map_err(|_| LedgerError::Validation("Invalid year".into()))?,
             credit_limit:       v(5).parse().map_err(|_| LedgerError::Validation("Invalid limit".into()))?,
-            currency:           parse_currency(&v(6))?,
+            currency:           v(6).parse::<Currency>().map_err(LedgerError::Validation)?,
             outstanding:        v(7).parse().map_err(|_| LedgerError::Validation("Invalid outstanding".into()))?,
             cash_advance_limit: None,
             statement_day:      v(8).parse().map_err(|_| LedgerError::Validation("Invalid statement day".into()))?,
@@ -138,7 +127,7 @@ async fn submit_form(
             account_number:  None,
             bank:            v(1),
             creditor:        v(2),
-            currency:        parse_currency(&v(3))?,
+            currency:        v(3).parse::<Currency>().map_err(LedgerError::Validation)?,
             principal:       v(4).parse().map_err(|_| LedgerError::Validation("Invalid principal".into()))?,
             interest_rate:   if v(5).is_empty() { None } else {
                 Some(v(5).parse().map_err(|_| LedgerError::Validation("Invalid rate".into()))?)

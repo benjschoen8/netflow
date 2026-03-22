@@ -1,9 +1,10 @@
 use rust_decimal::Decimal;
+use shared::domain::AggregateRoot;
 use shared::domain::UserId;
 
 use crate::application::error::LedgerError;
 use crate::application::parse_helpers::parse_investment_type;
-use crate::application::ports::UserFinancesRepository;
+use crate::application::ports::{LedgerUnitOfWork, WriteOperation};
 use crate::domain::account_id::AccountId;
 use crate::domain::currency::Currency;
 use crate::domain::investment::Investment;
@@ -22,10 +23,10 @@ pub struct AddHoldingCommand {
 }
 
 pub async fn execute(
-    repo: &dyn UserFinancesRepository,
+    uow: &dyn LedgerUnitOfWork,
     cmd: AddHoldingCommand,
 ) -> Result<(), LedgerError> {
-    let mut finances = repo.load(cmd.owner_id).await?;
+    let mut finances = uow.load(cmd.owner_id).await?;
 
     let investment = Investment::new(
         Ticker::new(cmd.ticker)?,
@@ -35,5 +36,6 @@ pub async fn execute(
     )?;
 
     finances.add_holding(cmd.account_id, investment)?;
-    repo.save(&finances).await
+    let _events = finances.pull_events();
+    uow.commit(WriteOperation::new(&finances, vec![])).await
 }

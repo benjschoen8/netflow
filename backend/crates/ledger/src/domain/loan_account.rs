@@ -19,7 +19,6 @@ pub struct LoanAccount {
     bank: Bank,
     loan: Loan,
     minimum_payment_paid: bool,
-    is_paid: bool,
 }
 
 impl LoanAccount {
@@ -30,7 +29,6 @@ impl LoanAccount {
         bank: Bank,
         loan: Loan,
     ) -> Self {
-        let is_paid = loan.is_settled();
         Self {
             account_id,
             account_name,
@@ -38,12 +36,15 @@ impl LoanAccount {
             bank,
             loan,
             minimum_payment_paid: false,
-            is_paid,
         }
     }
 
     pub fn bank(&self) -> &Bank { &self.bank }
     pub fn account_number(&self) -> Option<&AccountNumber> { self.account_number.as_ref() }
+
+    pub fn rename(&mut self, name: AccountName) { self.account_name = name; }
+    pub fn set_bank(&mut self, bank: Bank) { self.bank = bank; }
+    pub fn set_account_number(&mut self, number: AccountNumber) { self.account_number = Some(number); }
     pub fn loan(&self) -> &Loan { &self.loan }
 }
 
@@ -58,13 +59,12 @@ impl DebtAccount for LoanAccount {
     fn outstanding(&self) -> &Liability { self.loan.outstanding() }
     fn minimum_payment(&self) -> Option<&Liability> { self.loan.minimum_payment() }
     fn minimum_payment_paid(&self) -> bool { self.minimum_payment_paid }
-    fn is_paid(&self) -> bool { self.is_paid }
+    fn is_paid(&self) -> bool { self.loan.is_settled() }
     fn is_overdue(&self) -> bool { self.loan.is_overdue() }
     fn interest_rate(&self) -> Option<Decimal> { self.loan.interest_rate() }
 
     fn make_payment(&mut self, amount: &Liability) -> Result<(), SharedError> {
         self.loan = self.loan.apply_payment(amount)?;
-        self.is_paid = self.loan.is_settled();
         if let Some(min) = self.loan.minimum_payment() {
             if amount.amount() >= min.amount() {
                 self.minimum_payment_paid = true;

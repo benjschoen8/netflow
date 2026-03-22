@@ -1,7 +1,10 @@
 use shared::domain::SharedError;
 
 use crate::domain::account_id::AccountId;
+use crate::domain::account_name::AccountName;
+use crate::domain::account_number::AccountNumber;
 use crate::domain::balance::Balance;
+use crate::domain::bank::Bank;
 use crate::domain::currency::Currency;
 use crate::domain::financial_entry::FinancialEntry;
 use crate::domain::asset_account::AssetAccount;
@@ -294,6 +297,40 @@ impl FinancialAccount {
     }
     pub fn as_digital_wallet(&self) -> Option<&DigitalWallet> {
         match self { Self::DigitalWallet(a) => Some(a), _ => None }
+    }
+
+    // ── Info mutations ────────────────────────────────────────────────────────
+
+    pub fn rename(&mut self, name: AccountName) {
+        match self {
+            Self::Cash(a)           => a.rename(name),
+            Self::Investment(a)     => a.rename(name),
+            Self::CreditCard(a)     => a.rename(name),
+            Self::Loan(a)           => a.rename(name),
+            Self::PhysicalWallet(a) => a.rename(name),
+            Self::DigitalWallet(a)  => a.rename(name),
+        }
+    }
+
+    /// Update bank label. Only meaningful for bank-backed account types.
+    /// Silently ignored on physical/digital wallets (they have no bank).
+    pub fn set_bank(&mut self, bank: Bank) {
+        match self {
+            Self::Cash(a)       => a.set_bank(bank),
+            Self::Investment(a) => a.set_bank(bank),
+            Self::Loan(a)       => a.set_bank(bank),
+            _                   => {}
+        }
+    }
+
+    /// Update account number. Only meaningful for bank-backed account types.
+    pub fn set_account_number(&mut self, number: AccountNumber) {
+        match self {
+            Self::Cash(a)       => a.set_account_number(number),
+            Self::Investment(a) => a.set_account_number(number),
+            Self::Loan(a)       => a.set_account_number(number),
+            _                   => {}
+        }
     }
 
     // ── Mutable downcasts ─────────────────────────────────────────────────────

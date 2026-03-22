@@ -35,6 +35,10 @@ impl InvestmentAccount {
 
     pub fn bank(&self) -> &Bank { &self.bank }
     pub fn account_number(&self) -> &AccountNumber { &self.account_number }
+
+    pub fn rename(&mut self, name: AccountName) { self.account_name = name; }
+    pub fn set_bank(&mut self, bank: Bank) { self.bank = bank; }
+    pub fn set_account_number(&mut self, number: AccountNumber) { self.account_number = number; }
     pub fn cash_balance(&self) -> &Money { &self.cash_balance }
     pub fn holdings(&self) -> &[Investment] { &self.holdings }
 

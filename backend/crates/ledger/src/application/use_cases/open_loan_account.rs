@@ -1,9 +1,10 @@
 use rust_decimal::Decimal;
 use chrono::NaiveDate;
+use shared::domain::AggregateRoot;
 use shared::domain::UserId;
 
 use crate::application::error::LedgerError;
-use crate::application::ports::UserFinancesRepository;
+use crate::application::ports::{LedgerUnitOfWork, WriteOperation};
 use crate::domain::account_id::AccountId;
 use crate::domain::account_name::AccountName;
 use crate::domain::account_number::AccountNumber;
@@ -34,10 +35,10 @@ pub struct OpenLoanAccountCommand {
 }
 
 pub async fn execute(
-    repo: &dyn UserFinancesRepository,
+    uow: &dyn LedgerUnitOfWork,
     cmd: OpenLoanAccountCommand,
 ) -> Result<(), LedgerError> {
-    let mut finances = repo.load(cmd.owner_id).await?;
+    let mut finances = uow.load(cmd.owner_id).await?;
 
     let account_number = cmd.account_number
         .map(AccountNumber::new)
@@ -69,5 +70,6 @@ pub async fn execute(
     );
 
     finances.add_loan_account(account)?;
-    repo.save(&finances).await
+    let _events = finances.pull_events();
+    uow.commit(WriteOperation::new(&finances, vec![])).await
 }
